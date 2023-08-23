@@ -3,23 +3,30 @@ Student: Timna Aversa
 Class: Introduction to Programming */
 
 
-var floorPos_y = 432;
-var max_x = 3000;
-var cameraPosX;
-var is_game_started = false;
-var is_explained = false;
+let floorPos_y = 432;
+let max_x = 3000;
+let cameraPosX;
+let is_game_started = true;
+let is_explained = true;
 let start_playing_button;
 
-var canyon;
-var collectables;
-var mountain;
-var cloud;
+let collectables;
 
-var char_info;
-var game_score;
-var flagpole;
+let char_info;
+let game_score;
+let flagpole;
 
-var game_lock;
+let game_lock;
+let jumpSound;
+
+function preload(){
+    soundFormats('mp3','wav');
+    
+    //load your sounds here
+    jumpSound = loadSound('assets/jump.wav');
+    jumpSound.setVolume(0.1);
+}
+
 
 //character set up
 class characterClass {
@@ -152,8 +159,8 @@ class characterClass {
 		};
 		this.horns = function (){
 			fill(255);
-			arc(this.gameChar_x + 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,6,2, PI);
-			arc(this.gameChar_x - 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,45,3.5, PI);
+			arc(this.gameChar_x + 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,6, 3, PI);
+			arc(this.gameChar_x - 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,0,3.5, PI);
 		};
 		this.characterMove = function (direction){
 			this.headBackground();
@@ -166,8 +173,7 @@ class characterClass {
 			if (this.isLeft && this.isFalling){
 				if (this.isLeft){this.characterMove('left');}
 				if (this.isRight){this.characterMove('right');}
-				if (this.this.isPlummeting){this.characterMove('');}
-				this.legs(move,direction);
+				if (this.isPlummeting){this.characterMove('');}
 				this.jump(-1,0);
 				this.jump(1,0);
 			}
@@ -550,22 +556,39 @@ function startGame()
 				new canyonClass(mid_screen + max_x/4, 2)]
 	sceneryObjs['canyons'] = {obj:canyons}
 	setupConfetti();
-	button_setup(width/2 - 40,height/2+40,'Start Game');
+	start_playing_button = {x:width/2 - 90,
+							y:height/2+40,
+							width: 200,
+							height: 80,
+							is_pressed:false
+						}
 }
-function button_setup(x,y,message){
-	start_playing_button = createButton(message);
-	start_playing_button.position(x, y);
-	start_playing_button.mousePressed(start_game_button);
-	start_playing_button.style('background-color: #FFFFFF;')
-	start_playing_button.mouseOver(()=>start_playing_button.style('background-color: rgb(212, 173, 252);'));
-	start_playing_button.mouseOut(()=>start_playing_button.style('background-color: #FFFFFF;'));
+function button_draw(message){
+	if ((mouseX > start_playing_button.x) && 
+		(mouseX < start_playing_button.x+start_playing_button.width) && 
+		(mouseY > start_playing_button.y) && 
+		(mouseY < start_playing_button.y+start_playing_button.height))
+	{
+		fill(212, 173, 252);
+		rect(start_playing_button.x,start_playing_button.y,
+			start_playing_button.width,start_playing_button.height,20);
+	
+		fill(255);
+		text(message, start_playing_button.x + 10,start_playing_button.y + 50);
+	}
+	else{
+		fill(255);
+		rect(start_playing_button.x,start_playing_button.y,
+			start_playing_button.width,start_playing_button.height,20);
+		fill(0);
+		text(message, start_playing_button.x + 10,start_playing_button.y + 50);
+	}
+	noStroke();
+	noFill();
 }
 function start_game_button()
 {
 	is_game_started = true;
-	start_playing_button.hide();
-	start_playing_button = '';
-	
 }
 function drawBoard()
 {
@@ -577,7 +600,7 @@ function drawBoard()
 	fill(255);
 	textFont('Georgia',24);
 	text('Lives: ',37,25);
-	for( var i = 0; i < char_info.lives; i++)
+	for( let i = 0; i < char_info.lives; i++)
 	{
 		heart(120 + i * 25,18,0.7);
 	}
@@ -683,13 +706,13 @@ class SystemeDeParticules {
     this.friction = 0.98;
     // le tableau 
     this.particules = [];
-    for (var i = 0; i < this.nombreMax; i++) {
+    for (let i = 0; i < this.nombreMax; i++) {
       this.particules.push(new Particule(this));
     }
   }
   rendu() {
     if (pression) {
-      var force = p5.Vector.sub(nouvelle, ancienne);
+      let force = p5.Vector.sub(nouvelle, ancienne);
       this.gravite.x = force.x / 20;
       this.gravite.y = force.y / 20;
     }
@@ -801,6 +824,7 @@ function draw()
 		textFont('Georgia',36);
 		text('Welcome to',width/2-90,height/2- 60);
 		text('Night Monster',width/2-110,height/2- 10);
+		button_draw('Start Game');
 	} else {
 		message = `Welcome Dear Player to the Night Monster,
 
@@ -845,6 +869,7 @@ function keyPressed()
 			char_info.lives = 3;
 		}
 		else{
+			// jumpSound.play();
 			char_info.gameChar_y -= 100;
 			if (char_info.gameChar_y <= 300)
 			{
@@ -866,5 +891,15 @@ function keyReleased()
 	else if (keyCode == 39)
 	{
 		char_info.isRight = false;
+	}
+}
+function mousePressed() {
+	if ((mouseX > start_playing_button.x) && 
+		(mouseX < start_playing_button.x+start_playing_button.width) && 
+		(mouseY > start_playing_button.y) && 
+		(mouseY < start_playing_button.y+start_playing_button.height))
+	{
+		is_game_started = true;
+		start_playing_button.is_pressed = true;
 	}
 }
