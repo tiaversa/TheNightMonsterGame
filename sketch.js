@@ -6,8 +6,8 @@ Class: Introduction to Programming */
 let floorPos_y = 432;
 let max_x = 3000;
 let cameraPosX;
-let is_game_started = true;
-let is_explained = true;
+let is_game_started = false;
+let is_explained = false;
 let start_playing_button;
 
 let collectables;
@@ -18,6 +18,10 @@ let flagpole;
 
 let game_lock;
 let jumpSound;
+let coinSound;
+let winSound;
+let backgound_musicbox;
+let background_crickets;
 
 function preload(){
     soundFormats('mp3','wav');
@@ -25,9 +29,19 @@ function preload(){
     //load your sounds here
     jumpSound = loadSound('assets/jump.wav');
     jumpSound.setVolume(0.1);
+	//music bo sound https://freesound.org/people/DRFX/sounds/338986/
+	backgound_musicbox = loadSound('assets/music_box.mp3');
+    backgound_musicbox.setVolume(0.2);
+	//https://freesound.org/people/justiiiiin/sounds/365075/
+	background_crickets = loadSound('assets/crickets_night.wav');
+    background_crickets.setVolume(0.1);
+	//https://freesound.org/people/robbeman/sounds/495642/
+	coinSound = loadSound('assets/coin.wav');
+    coinSound.setVolume(0.1);
+	//https://freesound.org/people/LittleRobotSoundFactory/sounds/274181/
+	winSound = loadSound('assets/win.wav');
+    winSound.setVolume(0.2);
 }
-
-
 //character set up
 class characterClass {
 	constructor(){
@@ -304,6 +318,8 @@ class collectableClass
 		this.token_draw = function ()
 		{
 			noStroke();
+			fill(255,215,0,90);
+			ellipse(this.x,this.y, 50);
 			fill(255, 211, 163);
 			triangle(this.x - this.size,
 				this.y,
@@ -324,6 +340,7 @@ class collectableClass
 				{
 					this.isFound = true;
 					game_score += 1;
+					coinSound.play();
 				}
 			}
 		};
@@ -351,6 +368,7 @@ class flagpoleClass
 	{
 		this.isReached= false;
 		this.x_pos= max_x - 250;
+		this.sound_played = false;
 		this.renderFladgpole = function(){
 			strokeWeight(5);
 			stroke(255);
@@ -358,6 +376,11 @@ class flagpoleClass
 			fill(135,206,250);
 			if (this.isReached)
 			{
+				if(this.sound_played == false)
+				{
+					winSound.play();
+					this.sound_played = true;
+				}
 				let fetced_all = true;
 				for (let i = 0 ; i < collectables.length; i++)
 				{
@@ -514,6 +537,7 @@ function reset()
 			});
 			game_score = 0;
 			flagpole.isReached = false;
+			flagpole.sound_played = false;
 }
 function checkPlayerDie()
 {
@@ -763,6 +787,8 @@ function setup()
 	createCanvas(1024, 576);
 	startGame();
 	game_lock = false;
+	backgound_musicbox.loop();
+	background_crickets.loop();
 }
 
 function draw()
@@ -869,7 +895,7 @@ function keyPressed()
 			char_info.lives = 3;
 		}
 		else{
-			// jumpSound.play();
+			jumpSound.play();
 			char_info.gameChar_y -= 100;
 			if (char_info.gameChar_y <= 300)
 			{
