@@ -15,6 +15,7 @@ let collectables;
 let char_info;
 let game_score;
 let flagpole;
+let platforms;
 
 let game_lock;
 let jumpSound;
@@ -419,6 +420,20 @@ But you didn't get all coins.
 		}
 	}
 }
+class platformClass
+{
+	constructor(x,y,length)
+	{
+		this.x = x;
+		this.y = y;
+		this.length = length;
+		this.draw = function()
+		{
+			fill(255,0,255);
+			rect(this.x,this.y,length,20);
+		}
+	}
+}
 // object to control the random generated objects
 let sceneryObjs = {rocks:{'rand':850,'x':max_x,'y':120,'size':8,'obj':[]},
 					stars:{'rand':1050,'x':max_x,'y':425,'size':8,'obj':[]},
@@ -550,7 +565,8 @@ function checkPlayerDie()
 		else{
 			message = `         Game over. 
 Press space to continue.`;
-			message_board(message,500,150);
+			if (char_info.lives > 0) {char_info.lives = 0;}
+			message_board(message,420,150, 300);
 			game_lock = true;
 		}
 	}
@@ -632,16 +648,17 @@ function drawBoard()
 	text('Score: ' + game_score, 37,60);
 }
 //type is to control the deslocation where necessary
-function message_board(message,message_width,message_heigth)
+function message_board(message,message_width,message_heigth, box_pos_x = 0)
 {
+	if (box_pos_x == 0){box_pos_x = cameraPosX + width/2 - message_width/ 2;}
 	fill(212, 173, 252);
-	rect(cameraPosX + width/2 - message_width/ 2, height/2 - message_heigth/2 -10,message_width, message_heigth -10);
+	rect(box_pos_x, height/2 - message_heigth/2 -10,message_width, message_heigth -10);
 	fill(92, 70, 156);
-	rect(cameraPosX + width/2 - message_width/ 2 + 10, height/2 - message_heigth/2,message_width -20, message_heigth-30);
+	rect(box_pos_x + 10, height/2 - message_heigth/2,message_width -20, message_heigth-30);
 	noStroke();
 	fill(255);
 	textFont('Georgia',36 - message.length/30);
-	text(message,cameraPosX + width/2 - message_width/ 2 + 30, height/2 - message_heigth/2 +40);
+	text(message,box_pos_x + 30, height/2 - message_heigth/2 +40);
 }
 
 // Not my code, credit too: https://editor.p5js.org/slow_izzm/sketches/H1fhGJSaX
@@ -852,12 +869,12 @@ function draw()
 		text('Night Monster',width/2-110,height/2- 10);
 		button_draw('Start Game');
 	} else {
-		message = `Welcome Dear Player to the Night Monster,
+		message = `Welcome to the Night Monster,
 
-In this game, our little night monster called Sparkaboo, is competing
-to get free Ice Cream for a year!
-To win this important competition Sparkaboo has to have the highest
-number of Ice Cream coins in town, by collecting them throughtout 
+In this game, our little night monster called Sparkaboo, is 
+competing to get free Ice Cream for a year!
+To win this important competition Sparkaboo has to have the 
+highest number of Ice Cream coins by collecting them throughtout 
 the forest.
 Come and join us in this adventure!
 
