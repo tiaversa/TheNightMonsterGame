@@ -3,9 +3,9 @@ Student: Timna Aversa
 Class: Introduction to Programming */
 
 
-let floorPos_y = 432;
-let max_x = 3000;
-let mid_screen = max_x/2;
+const floorPos_y = 432;
+const max_x = 3000;
+const mid_screen = max_x/2;
 let cameraPosX;
 let is_game_started = false;
 let is_explained = false;
@@ -16,7 +16,6 @@ let enemies;
 let char_info;
 let game_score;
 let flagpole;
-let platforms;
 
 let game_lock;
 let jumpSound;
@@ -31,18 +30,21 @@ let sceneryObjs = {rocks:{amount:850,obj:[]},
 	mountains:{amount:20,obj:[]},
 	trees:{amount:10,obj:[]},
 	clouds:{amount:15,obj:[]},
-	platforms:{location:[{x:520,y:floorPos_y - 100,length:120},
-						{x:720,y:floorPos_y - 100,length:120}],
+	platforms:{location:[{x:750,y:floorPos_y - 100,length:120},
+						{x:1720,y:floorPos_y - 100,length:120}],
 			obj:[]},
 	collectables:{location:[{x:(mid_screen - max_x/2.5),y:410},
 							{x:(mid_screen - max_x/6),y:410},
-							{x:(mid_screen + max_x/6),y:100},
+							{x:(1820),y:floorPos_y - 118},
 							{x:(mid_screen + max_x/3),y:410},
 							{x:(max_x - 300),y:410}],
 			obj:[]},
 	canyons:{location:[{x:(mid_screen - max_x/3)},
 						{x:(mid_screen - max_x/10)},
 						{x:(mid_screen + max_x/4)}],
+			obj:[]},
+	enemies:{location:[{x:740, y:floorPos_y - 10, range:150},
+						{x:1700, y:floorPos_y - 10, range:200}],
 			obj:[]}
 };
 
@@ -233,7 +235,7 @@ function Character(){
 {
 	if ((this.isPlummeting) && (this.gameChar_y > height))
 	{
-		if (this.lives > 0)
+		if (this.lives > 1)
 		{
 			reset();
 		}
@@ -449,16 +451,21 @@ Press space to play again.`;
 		}
 	}
 	this.checkFlagpole = function(){
-		let finish_dist = abs(dist(this.x_pos, 
-								floorPos_y, 
-								char_info.gameChar_x + cameraPosX, 
-								char_info.gameChar_y
-							)
-						)
-		if (finish_dist <= 15)
+		if (char_info.gameChar_x + cameraPosX >= this.x)
 		{
+			console.log('reached')
 			this.isReached = true;
 		}
+		// let finish_dist = abs(dist(this.x_pos, 
+		// 						floorPos_y, 
+		// 						char_info.gameChar_x + cameraPosX, 
+		// 						char_info.gameChar_y
+		// 					)
+		// // 				)
+		// if (finish_dist <= 15)
+		// {
+		// 	this.isReached = true;
+		// }
 	};
 }
 function Platform(x,y,length){
@@ -484,6 +491,60 @@ function Platform(x,y,length){
 		return false;
 	};
 }
+function Enemy(x,y,range)
+{
+	this.x = x;
+	this.y = y;
+	this.range = range;
+	this.currentX = x + floor(random(range - 1));
+	this.inc =1;
+	this.update = function()
+	{
+		this.currentX += this.inc;
+		if(this.currentX >= this.x + this.range)
+		{
+			this.inc = -1
+		}
+		else if (this.currentX < this.x)
+		{
+			this.inc = 1;
+		}
+	}
+	this.draw = function()
+	{
+		this.update();
+		fill(255);
+		ellipse(this.currentX - 3, this.y -20, 6,32);
+		ellipse(this.currentX + 3, this.y-20, 6,32);
+		fill(1,32,20);
+		ellipse(this.currentX - 3, this.y -20, 5,30);
+		ellipse(this.currentX + 3, this.y-20, 5,30);
+		fill(0,255,0);
+		ellipse(this.currentX, this.y, 30);
+		
+		if (this.inc)
+		{
+			//mouth
+			fill(255);
+			ellipse(this.currentX + 4 * this.inc, this.y + 4, 15);
+			//eyes
+			fill(0);
+			ellipse(this.currentX + 7 * this.inc, this.y -6,7);
+			ellipse(this.currentX, this.y -6,7);
+		}
+		let isContact = this.checkContact();
+		if (isContact)
+		{
+			char_info.isPlummeting = true
+		}
+	}
+	this.checkContact = function()
+	{
+		var d = dist(char_info.gameChar_x + cameraPosX, char_info.gameChar_y, this.currentX, this.y)
+		if (d < 20){return true;}
+		return false
+	}
+}
 function drawObjectsInArray(array_obj)
 {
 	for (let i = 0; i < array_obj.length; i++) 
@@ -491,7 +552,6 @@ function drawObjectsInArray(array_obj)
 		array_obj[i].draw();
 	}
 }
-
 function heart(x_inp,y_inp, r)
 {
 	noStroke();
@@ -551,12 +611,12 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 	if (char_info.gameChar_y < floorPos_y)
 	{
 		let isContact = false;
-		for(let i = 0; i< platforms.length; i++)
+		for(let i = 0; i< sceneryObjs.platforms.obj.length; i++)
 		{
-			if (platforms[i].checkContact())
+			if (sceneryObjs.platforms.obj[i].checkContact())
 			{
 				isContact = true;
-				char_info.gameChar_y = platforms[i].y;
+				char_info.gameChar_y = sceneryObjs.platforms.obj[i].y;
 				break;
 			}
 		}
@@ -572,7 +632,6 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 	}
 	return char_info, cameraPosX
 }
-
 function reset()
 {
 	char_info.gameChar_x = 200;
@@ -590,7 +649,6 @@ function reset()
 			flagpole.isReached = false;
 			flagpole.sound_played = false;
 }
-
 function backgroundSetUp()
 {
 	for(let i = 0; i < sceneryObjs.trees.amount; i++)
@@ -624,10 +682,18 @@ function backgroundSetUp()
 	}
 	for(let i = 0; i < sceneryObjs.platforms.location.length; i++)
 	{
-		sceneryObjs.platforms.obj.push(new Collectable(sceneryObjs.platforms.location[i].x,
+		sceneryObjs.platforms.obj.push(new Platform(sceneryObjs.platforms.location[i].x,
 															sceneryObjs.platforms.location[i].y,
 															sceneryObjs.platforms.location[i].length));
 	}
+	for(let i = 0; i < sceneryObjs.enemies.location.length; i++)
+	{
+		sceneryObjs.enemies.obj.push(new Enemy(sceneryObjs.enemies.location[i].x,
+															sceneryObjs.enemies.location[i].y,
+															sceneryObjs.enemies.location[i].range));
+	}
+	console.log(sceneryObjs.enemies)
+	
 }
 function startGame()
 {
@@ -638,17 +704,12 @@ function startGame()
 	//generate objects in the arrays
 	backgroundSetUp();
 	setupConfetti();
-	enemies = [];
-	enemies.push(new Enemy(700,floorPos_y - 10, 200));
 	start_playing_button = {x:width/2 - 90,
 							y:height/2+40,
 							width: 200,
 							height: 80,
 							is_pressed:false
 						}
-	//testing platform
-	platforms = [];
-	platforms.push(new Platform(520,floorPos_y - 100,120));
 }
 function button_draw(message){
 	if ((mouseX > start_playing_button.x) && 
@@ -839,84 +900,21 @@ function polygon(x, y, radius, npoints) {
 	endShape(CLOSE);
   }
 //back to my code
-
-
-//game main
-function setup()
+function gameWelcome()
 {
-	createCanvas(1024, 576);
-	startGame();
-	game_lock = false;
-	backgound_musicbox.loop();
-	background_crickets.loop();
+	fill(212, 173, 252);
+	polygon(width/2,height/2,230,10);
+	fill(92, 70, 156);
+	polygon(width/2,height/2,210,10);
+	fill(255);
+	textFont('Georgia',36);
+	text('Welcome to',width/2-90,height/2- 60);
+	text('Night Monster',width/2-110,height/2- 10);
+	button_draw('Start Game');
 }
-
-function draw()
+function gameIntroduction()
 {
-	background(6, 0, 71);
-	if (is_game_started && is_explained){
-		noStroke();
-		fill(26, 95, 122);
-		rect(0, 432, 1024, 20);
-		fill(5, 45, 72);
-		rect(0,452,1024, 120);
-		push();
-
-		translate(-cameraPosX, 0);
-		// drawing each object in the arrays
-		Object.entries(sceneryObjs).forEach(([key, value]) => {
-			drawObjectsInArray(sceneryObjs[key].obj,key);
-		});
-		//platform testing
-		for (var i = 0; i < platforms.length; i++)
-		{
-			platforms[i].draw();
-		}
-
-		for (let i = 0; i< enemies.length; i++)
-		{
-			enemies[i].draw();
-			let isContact = enemies[i].checkContact();
-			if (isContact)
-			{
-				char_info.isPlummeting = true
-			}
-		}
-		flagpole.renderFladgpole();
-		pop();
-
-		if (game_lock == false)
-		{
-			//character and camera position control
-			char_info, cameraPosX = char_and_camera_cordination(char_info,
-																cameraPosX,
-																floorPos_y)
-
-			//character design
-			strokeWeight(1);
-			char_info.character_draw();
-		}
-		
-		//print character score
-		drawBoard();
-		
-		if(flagpole.isReached == false)
-		{
-			flagpole.checkFlagpole();
-		}
-		char_info.checkPlayerDie();
-	} else if (is_game_started == false) {
-		fill(212, 173, 252);
-		polygon(width/2,height/2,230,10);
-		fill(92, 70, 156);
-		polygon(width/2,height/2,210,10);
-		fill(255);
-		textFont('Georgia',36);
-		text('Welcome to',width/2-90,height/2- 60);
-		text('Night Monster',width/2-110,height/2- 10);
-		button_draw('Start Game');
-	} else {
-		message = `Welcome to the Night Monster,
+	message = `Welcome to the Night Monster,
 
 In this game, our little night monster called Sparkaboo, is 
 competing to get free Ice Cream for a year!
@@ -932,8 +930,6 @@ Press space to jump.
 Press space to start!
 `
 		message_board(message,700,500);
-	}
-
 }
 // user actions control
 function keyPressed()
@@ -994,53 +990,71 @@ function mousePressed() {
 	}
 }
 
-function Enemy(x,y,range)
+
+
+//game main
+function setup()
 {
-	this.x = x;
-	this.y = y;
-	this.range = range;
-	this.currentX = x;
-	this.inc =1;
-	this.update = function()
-	{
-		this.currentX += this.inc;
-		if(this.currentX >= this.x + this.range)
+	createCanvas(1024, 576);
+	startGame();
+	game_lock = false;
+	backgound_musicbox.loop();
+	background_crickets.loop();
+}
+
+function draw()
+{
+	background(6, 0, 71);
+	if (is_game_started && is_explained){
+		noStroke();
+		fill(26, 95, 122);
+		rect(0, 432, 1024, 20);
+		fill(5, 45, 72);
+		rect(0,452,1024, 120);
+		push();
+
+		translate(-cameraPosX, 0);
+		// drawing each object in the arrays
+		Object.entries(sceneryObjs).forEach(([key, value]) => {
+			drawObjectsInArray(sceneryObjs[key].obj,key);
+		});
+
+		// for (let i = 0; i< enemies.length; i++)
+		// {
+		// 	enemies[i].draw();
+		// 	let isContact = enemies[i].checkContact();
+		// 	if (isContact)
+		// 	{
+		// 		char_info.isPlummeting = true
+		// 	}
+		// }
+		flagpole.renderFladgpole();
+		pop();
+
+		if (game_lock == false)
 		{
-			this.inc = -1
+			//character and camera position control
+			char_info, cameraPosX = char_and_camera_cordination(char_info,
+																cameraPosX,
+																floorPos_y)
+
+			//character design
+			strokeWeight(1);
+			char_info.character_draw();
 		}
-		else if (this.currentX < this.x)
-		{
-			this.inc = 1;
-		}
-	}
-	this.draw = function()
-	{
-		this.update();
-		fill(255);
-		ellipse(this.currentX - 3, this.y -20, 6,32);
-		ellipse(this.currentX + 3, this.y-20, 6,32);
-		fill(1,32,20);
-		ellipse(this.currentX - 3, this.y -20, 5,30);
-		ellipse(this.currentX + 3, this.y-20, 5,30);
-		fill(0,255,0);
-		ellipse(this.currentX, this.y, 30);
 		
-		if (this.inc)
-		{
-			//mouth
-			fill(255);
-			ellipse(this.currentX + 4 * this.inc, this.y + 4, 15);
-			//eyes
-			fill(0);
-			ellipse(this.currentX + 7 * this.inc, this.y -6,7);
-			ellipse(this.currentX, this.y -6,7);
-		}
+		//print character score
+		drawBoard();
 		
+		if(flagpole.isReached == false)
+		{
+			flagpole.checkFlagpole();
+		}
+		char_info.checkPlayerDie();
+	} else if (is_game_started == false) {
+		gameWelcome();
+	} else {
+		gameIntroduction();
 	}
-	this.checkContact = function()
-	{
-		var d = dist(char_info.gameChar_x + cameraPosX, char_info.gameChar_y, this.currentX, this.y)
-		if (d < 20){return true;}
-		return false
-	}
+
 }
