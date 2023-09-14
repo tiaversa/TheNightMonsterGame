@@ -5,12 +5,13 @@ Class: Introduction to Programming */
 
 let floorPos_y = 432;
 let max_x = 3000;
+let mid_screen = max_x/2;
 let cameraPosX;
 let is_game_started = false;
 let is_explained = false;
 let start_playing_button;
+let enemies;
 
-let collectables;
 
 let char_info;
 let game_score;
@@ -23,6 +24,27 @@ let coinSound;
 let winSound;
 let backgound_musicbox;
 let background_crickets;
+
+// object to control the random generated objects
+let sceneryObjs = {rocks:{amount:850,obj:[]},
+	stars:{amount:1050,obj:[]},
+	mountains:{amount:20,obj:[]},
+	trees:{amount:10,obj:[]},
+	clouds:{amount:15,obj:[]},
+	platforms:{location:[{x:520,y:floorPos_y - 100,length:120},
+						{x:720,y:floorPos_y - 100,length:120}],
+			obj:[]},
+	collectables:{location:[{x:(mid_screen - max_x/2.5),y:410},
+							{x:(mid_screen - max_x/6),y:410},
+							{x:(mid_screen + max_x/6),y:100},
+							{x:(mid_screen + max_x/3),y:410},
+							{x:(max_x - 300),y:410}],
+			obj:[]},
+	canyons:{location:[{x:(mid_screen - max_x/3)},
+						{x:(mid_screen - max_x/10)},
+						{x:(mid_screen + max_x/4)}],
+			obj:[]}
+};
 
 function preload(){
     soundFormats('mp3','wav');
@@ -44,428 +66,429 @@ function preload(){
     winSound.setVolume(0.2);
 }
 //character set up
-class characterClass {
-	constructor(){
-		this.gameChar_x = 200;
-		this.gameChar_y = floorPos_y;
-		this.char_size = 10;
-		this.isLeft = false;
-		this.isRight = false;
-		this.isFalling = false;
-		this.isPlummeting = false;
-		this.lives = 3;
-		this.hair = function(){
-			fill(210, 83, 128);
-			ellipse(this.gameChar_x - 0.18 * this.char_size,
-					this.gameChar_y- 4.6 * this.char_size,
-					0.45 * this.char_size,0.45 * this.char_size);
-			ellipse(this.gameChar_x - 0.4 * this.char_size,
-					this.gameChar_y- 4.3 * this.char_size,
-					0.4 * this.char_size,0.4 * this.char_size);
-			ellipse(this.gameChar_x,
-					this.gameChar_y- 4.3 * this.char_size,
-					0.5 * this.char_size,0.4 * this.char_size);
-			ellipse(this.gameChar_x + 0.18 * this.char_size,
-					this.gameChar_y- 4.6 * this.char_size,
-					0.45 * this.char_size,0.45 * this.char_size);
-			ellipse(this.gameChar_x + 0.4 * this.char_size,
-					this.gameChar_y- 4.3 * this.char_size,
-					0.4 * this.char_size,0.4 * this.char_size);
-		};
-		this.eye = function(direction){
-			let dirNum = 0;
-			if (direction === "left")
-			{
-				dirNum = -3;
-			}
-			if (direction === "right")
-			{
-				dirNum = 3;
-			}
-			fill(255);
-			ellipse(this.gameChar_x + dirNum ,
-					this.gameChar_y -3.1 * this.char_size,
-					2.3 * this.char_size,2.3 * this.char_size);
-			fill(0);
-			ellipse(this.gameChar_x + dirNum * 2.4,
-					this.gameChar_y - 3.1 * this.char_size+ dirNum * 0.2,
-					1.4 * this.char_size,1.4 * this.char_size);
-			fill(255);
-			ellipse(this.gameChar_x + dirNum * 3.2,
-					this.gameChar_y - 3.25 * this.char_size,
-					0.7 * this.char_size,0.7 * this.char_size);
-			ellipse(this.gameChar_x - 2 + dirNum,
-					this.gameChar_y - 2.7 * this.char_size,
-					0.3 * this.char_size,0.3 * this.char_size);
-		};
-		this.mouth = function(direction){
-			let dirNum = 0;
-			if (direction === "left")
-			{
-				dirNum = -4.2;
-			}
-			if (direction === "right")
-			{
-				dirNum = 4.2;
-			}
-			triangle(this.gameChar_x - 0.8 * this.char_size + dirNum, 
-				this.gameChar_y - 1.3  * this.char_size,
-				this.gameChar_x - 0.6 * this.char_size +dirNum, 
-				this.gameChar_y - 1.6 * this.char_size, 
-				this.gameChar_x - 0.4 * this.char_size+dirNum, 
-				this.gameChar_y - 1.3 * this.char_size);
-			triangle(this.gameChar_x + 0.8 * this.char_size + dirNum, 
-				this.gameChar_y - 1.3 * this.char_size,
-				this.gameChar_x + 0.6 * this.char_size + dirNum, 
-				this.gameChar_y - 1.6 * this.char_size, 
-				this.gameChar_x + 0.4 * this.char_size + dirNum, 
-				this.gameChar_y - 1.3 * this.char_size);
-			stroke(147, 118, 224);
-			line(this.gameChar_x - 0.8 * this.char_size + dirNum, 
-				this.gameChar_y - 1.3 * this.char_size,
-				this.gameChar_x + 0.8 * this.char_size + dirNum, 
-				this.gameChar_y - 1.3 * this.char_size);
-		};
-		this.headBackground = function (){
-			this.horns(this.gameChar_x,
-						this.gameChar_y,
-						this.char_size);
-			fill(255,116,177);
-			ellipse(this.gameChar_x,
-					this.gameChar_y-2.4 * this.char_size,
-					4 * this.char_size,4 * this.char_size);
-			noStroke();
-			fill(128, 70, 116, 60);
-			arc(this.gameChar_x,
+function Character(){
+	this.gameChar_x = 200;
+	this.gameChar_y = floorPos_y;
+	this.char_size = 10;
+	this.isLeft = false;
+	this.isRight = false;
+	this.isFalling = false;
+	this.isPlummeting = false;
+	this.lives = 3;
+	this.hair = function(){
+		fill(210, 83, 128);
+		ellipse(this.gameChar_x - 0.18 * this.char_size,
+				this.gameChar_y- 4.6 * this.char_size,
+				0.45 * this.char_size,0.45 * this.char_size);
+		ellipse(this.gameChar_x - 0.4 * this.char_size,
+				this.gameChar_y- 4.3 * this.char_size,
+				0.4 * this.char_size,0.4 * this.char_size);
+		ellipse(this.gameChar_x,
+				this.gameChar_y- 4.3 * this.char_size,
+				0.5 * this.char_size,0.4 * this.char_size);
+		ellipse(this.gameChar_x + 0.18 * this.char_size,
+				this.gameChar_y- 4.6 * this.char_size,
+				0.45 * this.char_size,0.45 * this.char_size);
+		ellipse(this.gameChar_x + 0.4 * this.char_size,
+				this.gameChar_y- 4.3 * this.char_size,
+				0.4 * this.char_size,0.4 * this.char_size);
+	};
+	this.eye = function(direction){
+		let dirNum = 0;
+		if (direction === "left")
+		{
+			dirNum = -3;
+		}
+		if (direction === "right")
+		{
+			dirNum = 3;
+		}
+		fill(255);
+		ellipse(this.gameChar_x + dirNum ,
+				this.gameChar_y -3.1 * this.char_size,
+				2.3 * this.char_size,2.3 * this.char_size);
+		fill(0);
+		ellipse(this.gameChar_x + dirNum * 2.4,
+				this.gameChar_y - 3.1 * this.char_size+ dirNum * 0.2,
+				1.4 * this.char_size,1.4 * this.char_size);
+		fill(255);
+		ellipse(this.gameChar_x + dirNum * 3.2,
+				this.gameChar_y - 3.25 * this.char_size,
+				0.7 * this.char_size,0.7 * this.char_size);
+		ellipse(this.gameChar_x - 2 + dirNum,
+				this.gameChar_y - 2.7 * this.char_size,
+				0.3 * this.char_size,0.3 * this.char_size);
+	};
+	this.mouth = function(direction){
+		let dirNum = 0;
+		if (direction === "left")
+		{
+			dirNum = -4.2;
+		}
+		if (direction === "right")
+		{
+			dirNum = 4.2;
+		}
+		triangle(this.gameChar_x - 0.8 * this.char_size + dirNum, 
+			this.gameChar_y - 1.3  * this.char_size,
+			this.gameChar_x - 0.6 * this.char_size +dirNum, 
+			this.gameChar_y - 1.6 * this.char_size, 
+			this.gameChar_x - 0.4 * this.char_size+dirNum, 
+			this.gameChar_y - 1.3 * this.char_size);
+		triangle(this.gameChar_x + 0.8 * this.char_size + dirNum, 
+			this.gameChar_y - 1.3 * this.char_size,
+			this.gameChar_x + 0.6 * this.char_size + dirNum, 
+			this.gameChar_y - 1.6 * this.char_size, 
+			this.gameChar_x + 0.4 * this.char_size + dirNum, 
+			this.gameChar_y - 1.3 * this.char_size);
+		stroke(147, 118, 224);
+		line(this.gameChar_x - 0.8 * this.char_size + dirNum, 
+			this.gameChar_y - 1.3 * this.char_size,
+			this.gameChar_x + 0.8 * this.char_size + dirNum, 
+			this.gameChar_y - 1.3 * this.char_size);
+	};
+	this.headBackground = function (){
+		this.horns(this.gameChar_x,
+					this.gameChar_y,
+					this.char_size);
+		fill(255,116,177);
+		ellipse(this.gameChar_x,
 				this.gameChar_y-2.4 * this.char_size,
-				4 * this.char_size,4 * this.char_size,4.6,1.2,24);
-			fill(255,116,177);
-			ellipse(this.gameChar_x,
-					this.gameChar_y-2.4 * this.char_size,
-					3.4 * this.char_size,4 * this.char_size);
-		};
-		this.stand = function (side){
-			beginShape();
-			vertex(this.gameChar_x + 0.3 * this.char_size * side, this.gameChar_y);
-			vertex(this.gameChar_x + 0.35 * this.char_size * side, this.gameChar_y - 0.5 * this.char_size);
-			vertex(this.gameChar_x + 0.8 * this.char_size * side, this.gameChar_y - 0.7 * this.char_size);
-			vertex(this.gameChar_x + 1 * this.char_size * side, this.gameChar_y);
-			endShape(CLOSE);
-		};
-		this.walk = function (side,direction){
-			beginShape();
-			vertex(this.gameChar_x + 0.6 * this.char_size * side + direction, this.gameChar_y);
-			vertex(this.gameChar_x + 0.35 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size);
-			vertex(this.gameChar_x + 0.4 * this.char_size * side + direction, this.gameChar_y - 0.5 * this.char_size);
-			vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.6 * this.char_size);
-			vertex(this.gameChar_x + 1 * this.char_size * side + direction, this.gameChar_y - 0.4 * this.char_size);
-			vertex(this.gameChar_x + 1.4 * this.char_size * side + direction, this.gameChar_y- 0.2 * this.char_size);
-			endShape(CLOSE);
-		};
-		this.jump = function (side,direction){
-			beginShape();
-			stroke(128, 70, 116, 60);
-			vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size + direction);
-			vertex(this.gameChar_x + 0.8 * this.char_size * side + direction, this.gameChar_y - 0.55 * this.char_size + direction);
-			vertex(this.gameChar_x + 1.3 * this.char_size * side + direction, this.gameChar_y - 1 * this.char_size + direction);
-			vertex(this.gameChar_x + 2 * this.char_size * side + direction, this.gameChar_y - 0.7 * this.char_size + direction);
-			endShape(CLOSE);
-			noStroke();
-		};
-		this.horns = function (){
-			fill(255);
-			arc(this.gameChar_x + 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,6, 3, PI);
-			arc(this.gameChar_x - 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,0,3.5, PI);
-		};
-		this.characterMove = function (direction){
-			this.headBackground();
-			this.hair();
-			this.eye(direction);
-			this.mouth(direction);
-			fill(255,116,177);
-		};
-		this.character_draw = function (){
-			if (this.isLeft && this.isFalling){
-				if (this.isLeft){this.characterMove('left');}
-				if (this.isRight){this.characterMove('right');}
-				if (this.isPlummeting){this.characterMove('');}
-				this.jump(-1,0);
-				this.jump(1,0);
-			}
-			else if (this.isLeft){
-				this.characterMove('left');
-				this.walk(1, -12);
-				this.walk(1, 0);
-			}
-			else if (this.isRight){
-				this.characterMove('right');
-				this.walk(-1, +12);
-				this.walk(-1, 0);
-			}
-			else{
-				this.characterMove('');
-				this.stand(-1);
-				this.stand(1);
-			}
-		};
+				4 * this.char_size,4 * this.char_size);
+		noStroke();
+		fill(128, 70, 116, 60);
+		arc(this.gameChar_x,
+			this.gameChar_y-2.4 * this.char_size,
+			4 * this.char_size,4 * this.char_size,4.6,1.2,24);
+		fill(255,116,177);
+		ellipse(this.gameChar_x,
+				this.gameChar_y-2.4 * this.char_size,
+				3.4 * this.char_size,4 * this.char_size);
+	};
+	this.stand = function (side){
+		beginShape();
+		vertex(this.gameChar_x + 0.3 * this.char_size * side, this.gameChar_y);
+		vertex(this.gameChar_x + 0.35 * this.char_size * side, this.gameChar_y - 0.5 * this.char_size);
+		vertex(this.gameChar_x + 0.8 * this.char_size * side, this.gameChar_y - 0.7 * this.char_size);
+		vertex(this.gameChar_x + 1 * this.char_size * side, this.gameChar_y);
+		endShape(CLOSE);
+	};
+	this.walk = function (side,direction){
+		beginShape();
+		vertex(this.gameChar_x + 0.6 * this.char_size * side + direction, this.gameChar_y);
+		vertex(this.gameChar_x + 0.35 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size);
+		vertex(this.gameChar_x + 0.4 * this.char_size * side + direction, this.gameChar_y - 0.5 * this.char_size);
+		vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.6 * this.char_size);
+		vertex(this.gameChar_x + 1 * this.char_size * side + direction, this.gameChar_y - 0.4 * this.char_size);
+		vertex(this.gameChar_x + 1.4 * this.char_size * side + direction, this.gameChar_y- 0.2 * this.char_size);
+		endShape(CLOSE);
+	};
+	this.jump = function (side,direction){
+		beginShape();
+		stroke(128, 70, 116, 60);
+		vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size + direction);
+		vertex(this.gameChar_x + 0.8 * this.char_size * side + direction, this.gameChar_y - 0.55 * this.char_size + direction);
+		vertex(this.gameChar_x + 1.3 * this.char_size * side + direction, this.gameChar_y - 1 * this.char_size + direction);
+		vertex(this.gameChar_x + 2 * this.char_size * side + direction, this.gameChar_y - 0.7 * this.char_size + direction);
+		endShape(CLOSE);
+		noStroke();
+	};
+	this.horns = function (){
+		fill(255);
+		arc(this.gameChar_x + 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,6, 3, PI);
+		arc(this.gameChar_x - 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,0,3.5, PI);
+	};
+	this.characterMove = function (direction){
+		this.headBackground();
+		this.hair();
+		this.eye(direction);
+		this.mouth(direction);
+		fill(255,116,177);
+	};
+	this.character_draw = function (){
+		if (this.isLeft && this.isFalling){
+			if (this.isLeft){this.characterMove('left');}
+			if (this.isRight){this.characterMove('right');}
+			if (this.isPlummeting){this.characterMove('');}
+			this.jump(-1,0);
+			this.jump(1,0);
+		}
+		else if (this.isLeft){
+			this.characterMove('left');
+			this.walk(1, -12);
+			this.walk(1, 0);
+		}
+		else if (this.isRight){
+			this.characterMove('right');
+			this.walk(-1, +12);
+			this.walk(-1, 0);
+		}
+		else{
+			this.characterMove('');
+			this.stand(-1);
+			this.stand(1);
+		}
+	};
+	this.checkPlayerDie = function ()
+{
+	if ((this.isPlummeting) && (this.gameChar_y > height))
+	{
+		if (this.lives > 0)
+		{
+			reset();
+		}
+		else{
+			message = `         Game over. 
+Press space to continue.`;
+			if (this.lives > 0) {this.lives = 0;}
+			message_board(message,420,150, 300);
+			game_lock = true;
+		}
 	}
+}
 }
 //game view
-//Random generation of numbers function for simplification of code
-function randNumb(maxNumber) 
-{
-	return Math.floor(Math.random() * maxNumber);
-}
-function tree(tree_obj)
-{
-	noStroke();
-	tree_obj.y=432-tree_obj.size*6;
-	fill(60, 35, 23);
-	rect(tree_obj.x-tree_obj.size,tree_obj.y-tree_obj.size*2,
-			tree_obj.size*2,tree_obj.size*8);
-	fill(46, 79, 79);
-	stroke(44, 51, 51);
-	triangle(tree_obj.x+tree_obj.size*10,
-				tree_obj.y,tree_obj.x,
-				tree_obj.y- tree_obj.size*26,
-				tree_obj.x-tree_obj.size*10,
-				tree_obj.y);
-	noStroke();
-	fill(44, 51, 51);
-	beginShape();
-	vertex(tree_obj.x+tree_obj.size*8, tree_obj.y-tree_obj.size*5);
-	vertex(tree_obj.x, tree_obj.y-tree_obj.size*13);
-	vertex(tree_obj.x-tree_obj.size*8, tree_obj.y-tree_obj.size*5);
-	vertex(tree_obj.x,tree_obj.y- tree_obj.size*11);
-	endShape();
-}
-function mountain(mount_obj)
-{
-	mount_obj.y=432;
-	fill(212, 173, 252);
-	triangle(mount_obj.x,mount_obj.y,mount_obj.x,mount_obj.y- mount_obj.size*26,
-				mount_obj.x+mount_obj.size*10,mount_obj.y);
-	fill(92, 70, 156);
-	triangle(mount_obj.x,mount_obj.y,mount_obj.x,mount_obj.y- mount_obj.size*26,
-				mount_obj.x-mount_obj.size*10,mount_obj.y);
-	fill(255);
-	beginShape();
-	vertex(mount_obj.x, mount_obj.y-mount_obj.size*18);
-	vertex(mount_obj.x, mount_obj.y-mount_obj.size*26);
-	vertex(mount_obj.x+mount_obj.size*3, mount_obj.y- mount_obj.size*18);
-	vertex(mount_obj.x+mount_obj.size/2,mount_obj.y- mount_obj.size*20);
-	endShape();
-	fill(210);
-	beginShape();
-	vertex(mount_obj.x, mount_obj.y-mount_obj.size*18);
-	vertex(mount_obj.x, mount_obj.y-mount_obj.size*26);
-	vertex(mount_obj.x-mount_obj.size*3, mount_obj.y- mount_obj.size*18);
-	vertex(mount_obj.x-mount_obj.size/2,mount_obj.y- mount_obj.size*20);
-	endShape();
-}
-function star(star_obj)
-{
-	i = randNumb(5)
-	if (i==0){fill(255, 95, 158);}
-	else if (i==1){fill(233, 0, 100);}
-	else if (i==2){fill(249, 217, 73);}
-	else if (i==3){fill(240, 240, 240);}
-	else if (i==4){fill(58, 180, 242);}
-	else{fill(39, 225, 193);}
-	ellipse(star_obj.x,star_obj.y,1,1);
-}
-function rock(rock_obj)
-{
-	size = rock_obj.size + 2;
-	i = size % 3
-	if (i==0){fill(65, 53, 67,50);}
-	else if (i==1){fill(240, 235, 141,50);}
-	else{fill(143, 67, 238, 50);}
-	ellipse(rock_obj.x,floorPos_y + 25 + rock_obj.y,size,size-3);
-}
-function cloud(cloud_obj)
-{
-	noStroke();
-	fill(255);
-	rect(cloud_obj.x + cloud_obj.size * 4, cloud_obj.y + cloud_obj.size/2 * 10, 
-			cloud_obj.size * 13, cloud_obj.size * 3, cloud_obj.size*2);
-	rect(cloud_obj.x + cloud_obj.size * 10, cloud_obj.y + cloud_obj.size/2 *5, 
-			cloud_obj.size * 5, cloud_obj.size * 4, cloud_obj.size*2);
-	rect(cloud_obj.x + cloud_obj.size * 7, cloud_obj.y + cloud_obj.size, 
-			cloud_obj.size * 4.5, cloud_obj.size * 6, cloud_obj.size*2);
-}
-function canyonDraw(canyon)
-{
-	noStroke();
-	fill(169, 113, 85);
-	rect(canyon.x,floorPos_y,canyon.width,200);
-}
-//initiating classes of random objects positioning
-class positionClass 
-{
-	constructor(maxX,maxY,maxSize) {
-		this.x = randNumb(maxX);
-		this.y = randNumb(maxY);
-		this.size = randNumb(maxSize);
-	}
-}
-class collectableClass
-{
-	constructor(x) {
-		this.x = x;
-		this.y = 410;
-		this.size = 7;
-		this.isFound = false;
-		this.token_draw = function ()
-		{
-			noStroke();
-			fill(255,215,0,90);
-			ellipse(this.x,this.y, 50);
-			fill(255, 211, 163);
-			triangle(this.x - this.size,
-				this.y,
-				this.x,
-				this.y + 2.5 * this.size,
-				this.x + this.size,
-				this.y);
-			fill(225, 18, 153);
-			arc(this.x, this.y-1, 2.3 * this.size, 3.3  * this.size, PI, 0 , CHORD);
-		};
-		this.checkCollectable = function ()
-		{
-			if (this.isFound == false)
-			{
-				this.token_draw();
-				if (dist(cameraPosX + char_info.gameChar_x,char_info.gameChar_y,this.x, 
-							this.y) < 25)
-				{
-					this.isFound = true;
-					game_score += 1;
-					coinSound.play();
-				}
-			}
-		};
-	}
-}
-class canyonClass
-{
-	constructor(x,size)
+function Tree(){
+	this.x = random(max_x);
+	this.size = random(6);
+	this.y = 432-this.size*6;
+	this.draw = function()
 	{
-		this.x = x;
-		this.size = size;
-		this.width = 70 * this.size;
-		this.checkCanyon = function()
-		{
-			if((this.x + this.width > cameraPosX + char_info.gameChar_x) && (cameraPosX + char_info.gameChar_x > this.x) && char_info.gameChar_y >= floorPos_y)
-			{
-				char_info.isPlummeting = true;
-			}
-		};
+		noStroke();
+		fill(60, 35, 23);
+		rect(this.x-this.size,this.y-this.size*2,
+				this.size*2,this.size*8);
+		fill(46, 79, 79);
+		stroke(44, 51, 51);
+		triangle(this.x+this.size*10,
+					this.y,this.x,
+					this.y- this.size*26,
+					this.x-this.size*10,
+					this.y);
+		noStroke();
+		fill(44, 51, 51);
+		beginShape();
+		vertex(this.x+this.size*8, this.y-this.size*5);
+		vertex(this.x, this.y-this.size*13);
+		vertex(this.x-this.size*8, this.y-this.size*5);
+		vertex(this.x,this.y- this.size*11);
+		endShape();
+	};
+}
+function Mountain(){
+	this.x = random(max_x);
+	this.y = random(300);
+	this.size = random(8);
+	this.draw = function()
+	{
+		this.y=432;
+		fill(212, 173, 252);
+		triangle(this.x,this.y,this.x,this.y- this.size*26,
+					this.x+this.size*10,this.y);
+		fill(92, 70, 156);
+		triangle(this.x,this.y,this.x,this.y- this.size*26,
+					this.x-this.size*10,this.y);
+		fill(255);
+		beginShape();
+		vertex(this.x, this.y-this.size*18);
+		vertex(this.x, this.y-this.size*26);
+		vertex(this.x+this.size*3, this.y- this.size*18);
+		vertex(this.x+this.size/2,this.y- this.size*20);
+		endShape();
+		fill(210);
+		beginShape();
+		vertex(this.x, this.y-this.size*18);
+		vertex(this.x, this.y-this.size*26);
+		vertex(this.x-this.size*3, this.y- this.size*18);
+		vertex(this.x-this.size/2,this.y- this.size*20);
+		endShape();
+	};
+}
+function Star(){
+	this.x = random(max_x);
+	this.y = random(425);
+	this.draw = function()
+	{
+		let i = floor(random(5));
+		if (i==0){fill(255, 95, 158);}
+		else if (i==1){fill(233, 0, 100);}
+		else if (i==2){fill(249, 217, 73);}
+		else if (i==3){fill(240, 240, 240);}
+		else if (i==4){fill(58, 180, 242);}
+		else{fill(39, 225, 193);}
+		ellipse(this.x,this.y,1,1);
+	};
+}
+function Rock()
+{
+	this.x = random(max_x);
+	this.y = random(120);
+	this.size = random(8) + 2;
+	this.draw = function()
+	{
+		let i = this.size % 3
+		if (i==0){fill(65, 53, 67,50);}
+		else if (i==1){fill(240, 235, 141,50);}
+		else{fill(143, 67, 238, 50);}
+		ellipse(this.x,floorPos_y + 25 + this.y,this.size,this.size-3);
 	}
 }
-class flagpoleClass
-{
-	constructor()
+function Cloud(){
+	this.x = random(max_x);
+	this.y = random(100);
+	this.size = random(8);
+	this.draw = function()
 	{
-		this.isReached= false;
-		this.x_pos= max_x - 250;
-		this.sound_played = false;
-		this.renderFladgpole = function(){
-			strokeWeight(5);
-			stroke(255);
-			line(this.x_pos,floorPos_y,this.x_pos,floorPos_y - 250);
-			fill(135,206,250);
-			if (this.isReached)
+		noStroke();
+		fill(255);
+		rect(this.x + this.size * 4, this.y + this.size/2 * 10, 
+				this.size * 13, this.size * 3, this.size*2);
+		rect(this.x + this.size * 10, this.y + this.size/2 *5, 
+				this.size * 5, this.size * 4, this.size*2);
+		rect(this.x + this.size * 7, this.y + this.size, 
+				this.size * 4.5, this.size * 6, this.size*2);
+	};
+}
+function Collectable(x, y = 410){
+	this.x = x;
+	this.y = y;
+	this.size = 7;
+	this.isFound = false;
+	this.token_draw = function ()
+	{
+		noStroke();
+		fill(255,215,0,90);
+		ellipse(this.x,this.y, 50);
+		fill(255, 211, 163);
+		triangle(this.x - this.size,
+			this.y,
+			this.x,
+			this.y + 2.5 * this.size,
+			this.x + this.size,
+			this.y);
+		fill(225, 18, 153);
+		arc(this.x, this.y-1, 2.3 * this.size, 3.3  * this.size, PI, 0 , CHORD);
+	};
+	this.checkCollectable = function ()
+	{
+		if (this.isFound == false)
+		{
+			this.token_draw();
+			if (dist(cameraPosX + char_info.gameChar_x,char_info.gameChar_y,this.x, 
+						this.y) < 25)
 			{
-				if(this.sound_played == false)
-				{
-					winSound.play();
-					this.sound_played = true;
-				}
-				let fetced_all = true;
-				for (let i = 0 ; i < collectables.length; i++)
-				{
-					if(collectables[i].isFound == false){fetced_all = false}
-				}
-				rect(this.x_pos,this - 250,80,20);
-				let message = ''
-				if(fetced_all){
-					message = `              You Win! 
+				this.isFound = true;
+				game_score += 1;
+				coinSound.play();
+			}
+		}
+	},
+	this.draw = function ()
+	{
+		this.checkCollectable();
+	}
+	;
+}
+function Canyon(x,size = 2){
+	this.x = x;
+	this.size = size;
+	this.width = 70 * this.size;
+	this.checkCanyon = function()
+	{
+		if((this.x + this.width > cameraPosX + char_info.gameChar_x) && (cameraPosX + char_info.gameChar_x > this.x) && char_info.gameChar_y >= floorPos_y)
+		{
+			char_info.isPlummeting = true;
+		}
+	};
+	this.draw = function()
+	{
+		noStroke();
+		fill(169, 113, 85);
+		rect(this.x,floorPos_y,this.width,200);
+		this.checkCanyon();
+	};
+}
+function Flagpole(){
+	this.isReached= false;
+	this.x_pos= max_x - 250;
+	this.sound_played = false;
+	this.renderFladgpole = function(){
+		strokeWeight(5);
+		stroke(255);
+		line(this.x_pos,floorPos_y,this.x_pos,floorPos_y - 250);
+		fill(135,206,250);
+		if (this.isReached)
+		{
+			if(this.sound_played == false)
+			{
+				winSound.play();
+				this.sound_played = true;
+			}
+			let fetced_all = true;
+			for (let i = 0 ; i < sceneryObjs.collectables.obj.length; i++)
+			{
+				if(sceneryObjs.collectables.obj[i].isFound == false){fetced_all = false}
+			}
+			rect(this.x_pos,this - 250,80,20);
+			let message = ''
+			if(fetced_all){
+				message = `              You Win! 
 Press space to play again.`;
-					message_board(message,450,140);
-				} else {
-					message = `           Level complete.
+				message_board(message,450,140);
+			} else {
+				message = `           Level complete.
 But you didn't get all coins. 
-  Press space to play again.`;
-					message_board(message,450,180);
-				}
-				game_lock = true;
-				runConfetties();
+Press space to play again.`;
+				message_board(message,450,180);
 			}
-			else{
-				rect(this.x_pos,floorPos_y - 20,80,20);
-			}
+			game_lock = true;
+			runConfetties();
 		}
-		this.checkFlagpole = function(){
-			let finish_dist = abs(dist(this.x_pos, 
-									floorPos_y, 
-									char_info.gameChar_x + cameraPosX, 
-									char_info.gameChar_y
-								)
+		else{
+			rect(this.x_pos,floorPos_y - 20,80,20);
+		}
+	}
+	this.checkFlagpole = function(){
+		let finish_dist = abs(dist(this.x_pos, 
+								floorPos_y, 
+								char_info.gameChar_x + cameraPosX, 
+								char_info.gameChar_y
 							)
-			if (finish_dist <= 15)
-			{
-				this.isReached = true;
-			}
-		}
-	}
-}
-class platformClass
-{
-	constructor(x,y,length)
-	{
-		this.x = x;
-		this.y = y;
-		this.length = length;
-		this.draw = function()
+						)
+		if (finish_dist <= 15)
 		{
-			fill(255,0,255);
-			rect(this.x,this.y,length,20);
+			this.isReached = true;
 		}
-	}
+	};
 }
-// object to control the random generated objects
-let sceneryObjs = {rocks:{'rand':850,'x':max_x,'y':120,'size':8,'obj':[]},
-					stars:{'rand':1050,'x':max_x,'y':425,'size':8,'obj':[]},
-					mountains:{'rand':20,'x':max_x,'y':300,'size':8,'obj':[]},
-					trees:{'rand':10,'x':max_x,'y':0,'size':6,'obj':[]},
-					clouds:{'rand':15,'x':max_x,'y':100,'size':8,'obj':[]}
-				};
-function drawObjectsInArray(array_obj, obj_type)
+function Platform(x,y,length){
+	this.x = x;
+	this.y = y;
+	this.length = length;
+	this.draw = function()
+	{
+		fill(255,0,255);
+		rect(this.x,this.y,length,20);
+	}
+	this.checkContact = function(){
+		let gc_x = char_info.gameChar_x + cameraPosX;
+		if((gc_x > this.x) && (gc_x < this.x + this.length))
+		{
+			let d = this.y - char_info.gameChar_y;
+			if(d >= 0 && d < 5)
+			{
+				return true;
+			}
+			
+		}
+		return false;
+	};
+}
+function drawObjectsInArray(array_obj)
 {
 	for (let i = 0; i < array_obj.length; i++) 
 	{
-		switch (obj_type) {
-			case 'trees':
-				tree(array_obj[i]);
-				break;
-			case 'rocks':
-				rock(array_obj[i]);
-				break;
-			case 'stars':
-				star(array_obj[i]);
-				break;
-			case 'clouds':
-				cloud(array_obj[i]);
-				break;
-			case 'mountains':
-				mountain(array_obj[i]);
-				break;
-			case 'canyons':
-				canyonDraw(array_obj[i]);
-			default:
-		}
-
+		array_obj[i].draw();
 	}
 }
 
@@ -527,8 +550,21 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 
 	if (char_info.gameChar_y < floorPos_y)
 	{
-		char_info.gameChar_y += 4;
-		char_info.isFalling = true;
+		let isContact = false;
+		for(let i = 0; i< platforms.length; i++)
+		{
+			if (platforms[i].checkContact())
+			{
+				isContact = true;
+				char_info.gameChar_y = platforms[i].y;
+				break;
+			}
+		}
+		if (isContact == false)
+		{
+			char_info.gameChar_y += 4;
+			char_info.isFalling = true;
+		}
 	}
 	else 
 	{
@@ -547,61 +583,72 @@ function reset()
 			char_info.isPlummeting = false;
 			char_info.lives -= 1;
 			cameraPosX = 0;
-			Object.entries(collectables).forEach(([key, collectable]) => {
+			Object.entries(sceneryObjs.collectables.obj).forEach(([key, collectable]) => {
 				collectable.isFound = false
 			});
 			game_score = 0;
 			flagpole.isReached = false;
 			flagpole.sound_played = false;
 }
-function checkPlayerDie()
+
+function backgroundSetUp()
 {
-	if ((char_info.isPlummeting) && (char_info.gameChar_y > height))
+	for(let i = 0; i < sceneryObjs.trees.amount; i++)
 	{
-		if (char_info.lives > 1)
-		{
-			reset();
-		}
-		else{
-			message = `         Game over. 
-Press space to continue.`;
-			if (char_info.lives > 0) {char_info.lives = 0;}
-			message_board(message,420,150, 300);
-			game_lock = true;
-		}
+		sceneryObjs.trees.obj.push(new Tree());
+	}
+	for(let i = 0; i < sceneryObjs.rocks.amount; i++)
+	{
+		sceneryObjs.rocks.obj.push(new Rock());
+	}
+	for(let i = 0; i < sceneryObjs.stars.amount; i++)
+	{
+		sceneryObjs.stars.obj.push(new Star());
+	}
+	for(let i = 0; i < sceneryObjs.mountains.amount; i++)
+	{
+		sceneryObjs.mountains.obj.push(new Mountain());
+	}
+	for(let i = 0; i < sceneryObjs.clouds.amount; i++)
+	{
+		sceneryObjs.clouds.obj.push(new Cloud());
+	}
+	for(let i = 0; i < sceneryObjs.canyons.location.length; i++)
+	{
+		sceneryObjs.canyons.obj.push(new Canyon(sceneryObjs.canyons.location[i].x));
+	}
+	for(let i = 0; i < sceneryObjs.collectables.location.length; i++)
+	{
+		sceneryObjs.collectables.obj.push(new Collectable(sceneryObjs.collectables.location[i].x,
+															sceneryObjs.collectables.location[i].y));
+	}
+	for(let i = 0; i < sceneryObjs.platforms.location.length; i++)
+	{
+		sceneryObjs.platforms.obj.push(new Collectable(sceneryObjs.platforms.location[i].x,
+															sceneryObjs.platforms.location[i].y,
+															sceneryObjs.platforms.location[i].length));
 	}
 }
 function startGame()
 {
 	cameraPosX = 0;
 	game_score = 0;
-	char_info = new characterClass();
-	flagpole = new flagpoleClass();
+	char_info = new Character();
+	flagpole = new Flagpole();
 	//generate objects in the arrays
-	Object.entries(sceneryObjs).forEach(([key, value]) => {
-		for (let j = 0; j < value.rand; j++) 
-		{
-			sceneryObjs[key].obj.push(new positionClass(value.x,value.y,value.size));
-		}
-	});
-	mid_screen = max_x/2;
-	collectables = [new collectableClass(mid_screen - max_x/2.5),
-					new collectableClass(mid_screen - max_x/6),
-					new collectableClass(mid_screen + max_x/6),
-					new collectableClass(mid_screen + max_x/3),
-					new collectableClass(max_x - 300)
-				]
-	canyons = [new canyonClass(mid_screen - max_x/3, 1),
-				new canyonClass(mid_screen - max_x/10, 1),
-				new canyonClass(mid_screen + max_x/4, 2)]
-	sceneryObjs['canyons'] = {obj:canyons}
+	backgroundSetUp();
 	setupConfetti();
+	enemies = [];
+	enemies.push(new Enemy(700,floorPos_y - 10, 200));
 	start_playing_button = {x:width/2 - 90,
 							y:height/2+40,
 							width: 200,
 							height: 80,
 							is_pressed:false
 						}
+	//testing platform
+	platforms = [];
+	platforms.push(new Platform(520,floorPos_y - 100,120));
 }
 function button_draw(message){
 	if ((mouseX > start_playing_button.x) && 
@@ -625,10 +672,6 @@ function button_draw(message){
 	}
 	noStroke();
 	noFill();
-}
-function start_game_button()
-{
-	is_game_started = true;
 }
 function drawBoard()
 {
@@ -818,26 +861,30 @@ function draw()
 		fill(5, 45, 72);
 		rect(0,452,1024, 120);
 		push();
+
 		translate(-cameraPosX, 0);
 		// drawing each object in the arrays
 		Object.entries(sceneryObjs).forEach(([key, value]) => {
 			drawObjectsInArray(sceneryObjs[key].obj,key);
 		});
-		
-		// controlling token drawing and interaction with character
-		Object.entries(collectables).forEach(([key, collectable]) => {
-			collectable.checkCollectable(collectables, 
-				cameraPosX, 
-				char_info,
-				canyons,
-				floorPos_y)});
-		Object.entries(canyons).forEach(([key, canyon]) => {
-			canyon.checkCanyon()});
-					
-					// return collectables
-		//flagpole
+		//platform testing
+		for (var i = 0; i < platforms.length; i++)
+		{
+			platforms[i].draw();
+		}
+
+		for (let i = 0; i< enemies.length; i++)
+		{
+			enemies[i].draw();
+			let isContact = enemies[i].checkContact();
+			if (isContact)
+			{
+				char_info.isPlummeting = true
+			}
+		}
 		flagpole.renderFladgpole();
 		pop();
+
 		if (game_lock == false)
 		{
 			//character and camera position control
@@ -857,7 +904,7 @@ function draw()
 		{
 			flagpole.checkFlagpole();
 		}
-		checkPlayerDie();
+		char_info.checkPlayerDie();
 	} else if (is_game_started == false) {
 		fill(212, 173, 252);
 		polygon(width/2,height/2,230,10);
@@ -944,5 +991,56 @@ function mousePressed() {
 	{
 		is_game_started = true;
 		start_playing_button.is_pressed = true;
+	}
+}
+
+function Enemy(x,y,range)
+{
+	this.x = x;
+	this.y = y;
+	this.range = range;
+	this.currentX = x;
+	this.inc =1;
+	this.update = function()
+	{
+		this.currentX += this.inc;
+		if(this.currentX >= this.x + this.range)
+		{
+			this.inc = -1
+		}
+		else if (this.currentX < this.x)
+		{
+			this.inc = 1;
+		}
+	}
+	this.draw = function()
+	{
+		this.update();
+		fill(255);
+		ellipse(this.currentX - 3, this.y -20, 6,32);
+		ellipse(this.currentX + 3, this.y-20, 6,32);
+		fill(1,32,20);
+		ellipse(this.currentX - 3, this.y -20, 5,30);
+		ellipse(this.currentX + 3, this.y-20, 5,30);
+		fill(0,255,0);
+		ellipse(this.currentX, this.y, 30);
+		
+		if (this.inc)
+		{
+			//mouth
+			fill(255);
+			ellipse(this.currentX + 4 * this.inc, this.y + 4, 15);
+			//eyes
+			fill(0);
+			ellipse(this.currentX + 7 * this.inc, this.y -6,7);
+			ellipse(this.currentX, this.y -6,7);
+		}
+		
+	}
+	this.checkContact = function()
+	{
+		var d = dist(char_info.gameChar_x + cameraPosX, char_info.gameChar_y, this.currentX, this.y)
+		if (d < 20){return true;}
+		return false
 	}
 }
