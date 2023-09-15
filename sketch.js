@@ -1,77 +1,125 @@
-/* Project Part 6 
+/* Final Project
 Student: Timna Aversa 
 Class: Introduction to Programming */
 
 
-const floorPos_y = 432;
-const max_x = 3000;
-const mid_screen = max_x/2;
+const floorPosY = 432;
+let maxX;
+let midScreen;
 let cameraPosX;
-let is_game_started = false;
-let is_explained = false;
-let start_playing_button;
-let enemies;
+let startPlayingButton;
 
+let charInfo;
+let gameScore;
 
-let char_info;
-let game_score;
-let flagpole;
+let gameSounds = {};
+let sceneryObjs;
 
-let game_lock;
-let jumpSound;
-let coinSound;
-let winSound;
-let backgound_musicbox;
-let background_crickets;
-
-// object to control the random generated objects
-let sceneryObjs = {rocks:{amount:850,obj:[]},
-	stars:{amount:1050,obj:[]},
-	mountains:{amount:20,obj:[]},
-	trees:{amount:10,obj:[]},
-	clouds:{amount:15,obj:[]},
-	platforms:{location:[{x:750,y:floorPos_y - 100,length:120},
-						{x:1720,y:floorPos_y - 100,length:120}],
-			obj:[]},
-	collectables:{location:[{x:(mid_screen - max_x/2.5),y:410},
-							{x:(mid_screen - max_x/6),y:410},
-							{x:(1820),y:floorPos_y - 118},
-							{x:(mid_screen + max_x/3),y:410},
-							{x:(max_x - 300),y:410}],
-			obj:[]},
-	canyons:{location:[{x:(mid_screen - max_x/3)},
-						{x:(mid_screen - max_x/10)},
-						{x:(mid_screen + max_x/4)}],
-			obj:[]},
-	enemies:{location:[{x:740, y:floorPos_y - 10, range:150},
-						{x:1700, y:floorPos_y - 10, range:200}],
-			obj:[]}
+let gameMetadata = {isGameStarted: false,
+	isExplained: false,
+	gameLock: false,
+	changeLevel: false,
+	gameLevel:1
 };
-
+// object to control the random generated objects
+function levelOne()
+{
+	maxX = 3000;
+	midScreen = maxX/2;
+	sceneryObjs = {rocks:{amount:850,obj:[]},
+					stars:{amount:1050,obj:[]},
+					mountains:{amount:20,obj:[]},
+					trees:{amount:10,obj:[]},
+					clouds:{amount:15,obj:[]},
+					platforms:{location:[{x:750,y:floorPosY - 100,length:120},
+										{x:1720,y:floorPosY - 100,length:120},
+										{x:2400,y:floorPosY - 100,length:120},
+										{x:2470,y:floorPosY - 200,length:120}],
+							obj:[]},
+					collectables:{location:[{x:(midScreen - maxX/2.5),y:410},
+											{x:(midScreen - maxX/6),y:410},
+											{x:(1820),y:floorPosY - 118},
+											{x:(midScreen + maxX/3),y:410},
+											{x:(maxX - 300),y:410},
+											{x:(2570),y:floorPosY - 218}
+										],
+							obj:[]},
+					canyons:{location:[{x:(midScreen - maxX/3)},
+										{x:(midScreen - maxX/10)},
+										{x:(midScreen + maxX/4)}],
+							obj:[]},
+					enemies:{location:[{x:740, y:floorPosY - 10, range:150},
+										{x:1700, y:floorPosY - 10, range:200}],
+							obj:[]},
+					flagpoles:{obj:[]}
+				};
+	backgroundSetUp();
+}
+function levelTwo()
+{
+	maxX = 5000;
+	midScreen = maxX/2;
+	sceneryObjs = {rocks:{amount:1250,obj:[]},
+					stars:{amount:1550,obj:[]},
+					mountains:{amount:30,obj:[]},
+					trees:{amount:30,obj:[]},
+					clouds:{amount:20,obj:[]},
+					platforms:{location:[{x:750,y:floorPosY - 100,length:120},
+										{x:1720,y:floorPosY - 100,length:120},
+										{x:2400,y:floorPosY - 100,length:120},
+										{x:2470,y:floorPosY - 190,length:120},
+										{x:2540,y:floorPosY - 290,length:120},
+										{x:3100,y:floorPosY - 100,length:120},
+										{x:3170,y:floorPosY - 200,length:120}],
+							obj:[]},
+					collectables:{location:[{x:800,y:floorPosY - 118},
+											{x:(midScreen - maxX/6),y:410},
+											{x:(1820),y:floorPosY - 118},
+											{x:(midScreen + maxX/3),y:410},
+											{x:(maxX - 300),y:410},
+											{x:2490,y:floorPosY - 210},
+											{x:2556,y:floorPosY - 308},
+											{x:2660,y:floorPosY - 308},
+											{x:3090,y:410},
+											{x:3140,y:floorPosY - 240},],
+							obj:[]},
+					canyons:{location:[{x:(midScreen - maxX/3)},
+										{x:(midScreen - maxX/10)},
+										{x:(midScreen + maxX/4)}],
+							obj:[]},
+					enemies:{location:[{x:740, y:floorPosY - 10, range:150},
+										{x:1700, y:floorPosY - 10, range:200},
+										{x:2556, y:floorPosY - 10, range:300},
+										{x:(midScreen + maxX/3 -30), y:floorPosY - 10, range:300}],
+							obj:[]},
+					flagpoles:{obj:[]}
+				};
+	backgroundSetUp();
+}
 function preload(){
     soundFormats('mp3','wav');
     
     //load your sounds here
-    jumpSound = loadSound('assets/jump.wav');
-    jumpSound.setVolume(0.1);
+    gameSounds.jumpSound = loadSound('assets/jump.wav');
+    gameSounds.jumpSound.setVolume(0.1);
 	//music bo sound https://freesound.org/people/DRFX/sounds/338986/
-	backgound_musicbox = loadSound('assets/music_box.mp3');
-    backgound_musicbox.setVolume(0.2);
+	gameSounds.backgoundMusicbox = loadSound('assets/music_box.mp3');
+    gameSounds.backgoundMusicbox.setVolume(0.2);
 	//https://freesound.org/people/justiiiiin/sounds/365075/
-	background_crickets = loadSound('assets/crickets_night.wav');
-    background_crickets.setVolume(0.1);
+	gameSounds.backgroundCrickets = loadSound('assets/crickets_night.wav');
+    gameSounds.backgroundCrickets.setVolume(0.1);
 	//https://freesound.org/people/robbeman/sounds/495642/
-	coinSound = loadSound('assets/coin.wav');
-    coinSound.setVolume(0.1);
+	gameSounds.coinSound = loadSound('assets/coin.wav');
+    gameSounds.coinSound.setVolume(0.1);
 	//https://freesound.org/people/LittleRobotSoundFactory/sounds/274181/
-	winSound = loadSound('assets/win.wav');
-    winSound.setVolume(0.2);
+	gameSounds.winSound = loadSound('assets/win.wav');
+    gameSounds.winSound.setVolume(0.2);
 }
 //character set up
 function Character(){
-	this.gameChar_x = 200;
-	this.gameChar_y = floorPos_y;
-	this.char_size = 10;
+	this.gameCharX = 200;
+	this.gameCharY = floorPosY;
+	this.charSize = 10;
 	this.isLeft = false;
 	this.isRight = false;
 	this.isFalling = false;
@@ -79,21 +127,21 @@ function Character(){
 	this.lives = 3;
 	this.hair = function(){
 		fill(210, 83, 128);
-		ellipse(this.gameChar_x - 0.18 * this.char_size,
-				this.gameChar_y- 4.6 * this.char_size,
-				0.45 * this.char_size,0.45 * this.char_size);
-		ellipse(this.gameChar_x - 0.4 * this.char_size,
-				this.gameChar_y- 4.3 * this.char_size,
-				0.4 * this.char_size,0.4 * this.char_size);
-		ellipse(this.gameChar_x,
-				this.gameChar_y- 4.3 * this.char_size,
-				0.5 * this.char_size,0.4 * this.char_size);
-		ellipse(this.gameChar_x + 0.18 * this.char_size,
-				this.gameChar_y- 4.6 * this.char_size,
-				0.45 * this.char_size,0.45 * this.char_size);
-		ellipse(this.gameChar_x + 0.4 * this.char_size,
-				this.gameChar_y- 4.3 * this.char_size,
-				0.4 * this.char_size,0.4 * this.char_size);
+		ellipse(this.gameCharX - 0.18 * this.charSize,
+				this.gameCharY- 4.6 * this.charSize,
+				0.45 * this.charSize,0.45 * this.charSize);
+		ellipse(this.gameCharX - 0.4 * this.charSize,
+				this.gameCharY- 4.3 * this.charSize,
+				0.4 * this.charSize,0.4 * this.charSize);
+		ellipse(this.gameCharX,
+				this.gameCharY- 4.3 * this.charSize,
+				0.5 * this.charSize,0.4 * this.charSize);
+		ellipse(this.gameCharX + 0.18 * this.charSize,
+				this.gameCharY- 4.6 * this.charSize,
+				0.45 * this.charSize,0.45 * this.charSize);
+		ellipse(this.gameCharX + 0.4 * this.charSize,
+				this.gameCharY- 4.3 * this.charSize,
+				0.4 * this.charSize,0.4 * this.charSize);
 	};
 	this.eye = function(direction){
 		let dirNum = 0;
@@ -106,20 +154,20 @@ function Character(){
 			dirNum = 3;
 		}
 		fill(255);
-		ellipse(this.gameChar_x + dirNum ,
-				this.gameChar_y -3.1 * this.char_size,
-				2.3 * this.char_size,2.3 * this.char_size);
+		ellipse(this.gameCharX + dirNum ,
+				this.gameCharY -3.1 * this.charSize,
+				2.3 * this.charSize,2.3 * this.charSize);
 		fill(0);
-		ellipse(this.gameChar_x + dirNum * 2.4,
-				this.gameChar_y - 3.1 * this.char_size+ dirNum * 0.2,
-				1.4 * this.char_size,1.4 * this.char_size);
+		ellipse(this.gameCharX + dirNum * 2.4,
+				this.gameCharY - 3.1 * this.charSize+ dirNum * 0.2,
+				1.4 * this.charSize,1.4 * this.charSize);
 		fill(255);
-		ellipse(this.gameChar_x + dirNum * 3.2,
-				this.gameChar_y - 3.25 * this.char_size,
-				0.7 * this.char_size,0.7 * this.char_size);
-		ellipse(this.gameChar_x - 2 + dirNum,
-				this.gameChar_y - 2.7 * this.char_size,
-				0.3 * this.char_size,0.3 * this.char_size);
+		ellipse(this.gameCharX + dirNum * 3.2,
+				this.gameCharY - 3.25 * this.charSize,
+				0.7 * this.charSize,0.7 * this.charSize);
+		ellipse(this.gameCharX - 2 + dirNum,
+				this.gameCharY - 2.7 * this.charSize,
+				0.3 * this.charSize,0.3 * this.charSize);
 	};
 	this.mouth = function(direction){
 		let dirNum = 0;
@@ -131,74 +179,74 @@ function Character(){
 		{
 			dirNum = 4.2;
 		}
-		triangle(this.gameChar_x - 0.8 * this.char_size + dirNum, 
-			this.gameChar_y - 1.3  * this.char_size,
-			this.gameChar_x - 0.6 * this.char_size +dirNum, 
-			this.gameChar_y - 1.6 * this.char_size, 
-			this.gameChar_x - 0.4 * this.char_size+dirNum, 
-			this.gameChar_y - 1.3 * this.char_size);
-		triangle(this.gameChar_x + 0.8 * this.char_size + dirNum, 
-			this.gameChar_y - 1.3 * this.char_size,
-			this.gameChar_x + 0.6 * this.char_size + dirNum, 
-			this.gameChar_y - 1.6 * this.char_size, 
-			this.gameChar_x + 0.4 * this.char_size + dirNum, 
-			this.gameChar_y - 1.3 * this.char_size);
+		triangle(this.gameCharX - 0.8 * this.charSize + dirNum, 
+			this.gameCharY - 1.3  * this.charSize,
+			this.gameCharX - 0.6 * this.charSize +dirNum, 
+			this.gameCharY - 1.6 * this.charSize, 
+			this.gameCharX - 0.4 * this.charSize+dirNum, 
+			this.gameCharY - 1.3 * this.charSize);
+		triangle(this.gameCharX + 0.8 * this.charSize + dirNum, 
+			this.gameCharY - 1.3 * this.charSize,
+			this.gameCharX + 0.6 * this.charSize + dirNum, 
+			this.gameCharY - 1.6 * this.charSize, 
+			this.gameCharX + 0.4 * this.charSize + dirNum, 
+			this.gameCharY - 1.3 * this.charSize);
 		stroke(147, 118, 224);
-		line(this.gameChar_x - 0.8 * this.char_size + dirNum, 
-			this.gameChar_y - 1.3 * this.char_size,
-			this.gameChar_x + 0.8 * this.char_size + dirNum, 
-			this.gameChar_y - 1.3 * this.char_size);
+		line(this.gameCharX - 0.8 * this.charSize + dirNum, 
+			this.gameCharY - 1.3 * this.charSize,
+			this.gameCharX + 0.8 * this.charSize + dirNum, 
+			this.gameCharY - 1.3 * this.charSize);
 	};
 	this.headBackground = function (){
-		this.horns(this.gameChar_x,
-					this.gameChar_y,
-					this.char_size);
+		this.horns(this.gameCharX,
+					this.gameCharY,
+					this.charSize);
 		fill(255,116,177);
-		ellipse(this.gameChar_x,
-				this.gameChar_y-2.4 * this.char_size,
-				4 * this.char_size,4 * this.char_size);
+		ellipse(this.gameCharX,
+				this.gameCharY-2.4 * this.charSize,
+				4 * this.charSize,4 * this.charSize);
 		noStroke();
 		fill(128, 70, 116, 60);
-		arc(this.gameChar_x,
-			this.gameChar_y-2.4 * this.char_size,
-			4 * this.char_size,4 * this.char_size,4.6,1.2,24);
+		arc(this.gameCharX,
+			this.gameCharY-2.4 * this.charSize,
+			4 * this.charSize,4 * this.charSize,4.6,1.2,24);
 		fill(255,116,177);
-		ellipse(this.gameChar_x,
-				this.gameChar_y-2.4 * this.char_size,
-				3.4 * this.char_size,4 * this.char_size);
+		ellipse(this.gameCharX,
+				this.gameCharY-2.4 * this.charSize,
+				3.4 * this.charSize,4 * this.charSize);
 	};
 	this.stand = function (side){
 		beginShape();
-		vertex(this.gameChar_x + 0.3 * this.char_size * side, this.gameChar_y);
-		vertex(this.gameChar_x + 0.35 * this.char_size * side, this.gameChar_y - 0.5 * this.char_size);
-		vertex(this.gameChar_x + 0.8 * this.char_size * side, this.gameChar_y - 0.7 * this.char_size);
-		vertex(this.gameChar_x + 1 * this.char_size * side, this.gameChar_y);
+		vertex(this.gameCharX + 0.3 * this.charSize * side, this.gameCharY);
+		vertex(this.gameCharX + 0.35 * this.charSize * side, this.gameCharY - 0.5 * this.charSize);
+		vertex(this.gameCharX + 0.8 * this.charSize * side, this.gameCharY - 0.7 * this.charSize);
+		vertex(this.gameCharX + 1 * this.charSize * side, this.gameCharY);
 		endShape(CLOSE);
 	};
 	this.walk = function (side,direction){
 		beginShape();
-		vertex(this.gameChar_x + 0.6 * this.char_size * side + direction, this.gameChar_y);
-		vertex(this.gameChar_x + 0.35 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size);
-		vertex(this.gameChar_x + 0.4 * this.char_size * side + direction, this.gameChar_y - 0.5 * this.char_size);
-		vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.6 * this.char_size);
-		vertex(this.gameChar_x + 1 * this.char_size * side + direction, this.gameChar_y - 0.4 * this.char_size);
-		vertex(this.gameChar_x + 1.4 * this.char_size * side + direction, this.gameChar_y- 0.2 * this.char_size);
+		vertex(this.gameCharX + 0.6 * this.charSize * side + direction, this.gameCharY);
+		vertex(this.gameCharX + 0.35 * this.charSize * side + direction, this.gameCharY - 0.2 * this.charSize);
+		vertex(this.gameCharX + 0.4 * this.charSize * side + direction, this.gameCharY - 0.5 * this.charSize);
+		vertex(this.gameCharX + 0.9 * this.charSize * side + direction, this.gameCharY - 0.6 * this.charSize);
+		vertex(this.gameCharX + 1 * this.charSize * side + direction, this.gameCharY - 0.4 * this.charSize);
+		vertex(this.gameCharX + 1.4 * this.charSize * side + direction, this.gameCharY- 0.2 * this.charSize);
 		endShape(CLOSE);
 	};
 	this.jump = function (side,direction){
 		beginShape();
 		stroke(128, 70, 116, 60);
-		vertex(this.gameChar_x + 0.9 * this.char_size * side + direction, this.gameChar_y - 0.2 * this.char_size + direction);
-		vertex(this.gameChar_x + 0.8 * this.char_size * side + direction, this.gameChar_y - 0.55 * this.char_size + direction);
-		vertex(this.gameChar_x + 1.3 * this.char_size * side + direction, this.gameChar_y - 1 * this.char_size + direction);
-		vertex(this.gameChar_x + 2 * this.char_size * side + direction, this.gameChar_y - 0.7 * this.char_size + direction);
+		vertex(this.gameCharX + 0.9 * this.charSize * side + direction, this.gameCharY - 0.2 * this.charSize + direction);
+		vertex(this.gameCharX + 0.8 * this.charSize * side + direction, this.gameCharY - 0.55 * this.charSize + direction);
+		vertex(this.gameCharX + 1.3 * this.charSize * side + direction, this.gameCharY - 1 * this.charSize + direction);
+		vertex(this.gameCharX + 2 * this.charSize * side + direction, this.gameCharY - 0.7 * this.charSize + direction);
 		endShape(CLOSE);
 		noStroke();
 	};
 	this.horns = function (){
 		fill(255);
-		arc(this.gameChar_x + 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,6, 3, PI);
-		arc(this.gameChar_x - 0.15 * this.char_size,this.gameChar_y-3.8 * this.char_size,3 * this.char_size,3 * this.char_size,0,3.5, PI);
+		arc(this.gameCharX + 0.15 * this.charSize,this.gameCharY-3.8 * this.charSize,3 * this.charSize,3 * this.charSize,6, 3, PI);
+		arc(this.gameCharX - 0.15 * this.charSize,this.gameCharY-3.8 * this.charSize,3 * this.charSize,3 * this.charSize,0,3.5, PI);
 	};
 	this.characterMove = function (direction){
 		this.headBackground();
@@ -207,7 +255,7 @@ function Character(){
 		this.mouth(direction);
 		fill(255,116,177);
 	};
-	this.character_draw = function (){
+	this.characterDraw = function (){
 		if (this.isLeft && this.isFalling){
 			if (this.isLeft){this.characterMove('left');}
 			if (this.isRight){this.characterMove('right');}
@@ -232,26 +280,36 @@ function Character(){
 		}
 	};
 	this.checkPlayerDie = function ()
-{
-	if ((this.isPlummeting) && (this.gameChar_y > height))
 	{
-		if (this.lives > 1)
+		if ((this.isPlummeting) && (this.gameCharY > height))
 		{
-			reset();
-		}
-		else{
-			message = `         Game over. 
+			if (this.lives > 1)
+			{
+				reset();
+			}
+			else{
+				message = `         Game over. 
 Press space to continue.`;
-			if (this.lives > 0) {this.lives = 0;}
-			message_board(message,420,150, 300);
-			game_lock = true;
+				if (this.lives > 0) {this.lives = 0;}
+				messageBoard(message,420,150, 300,0);
+				gameMetadata.gameLock = true;
+			}
 		}
+	};
+	this.reset = function ()
+	{
+		this.gameCharX = 200;
+		this.gameCharY = floorPosY;
+		this.isLeft = false;
+		this.isRight = false;
+		this.isFalling = false;
+		this.isPlummeting = false;
+		this.lives -= 1;
 	}
-}
 }
 //game view
 function Tree(){
-	this.x = random(max_x);
+	this.x = random(maxX);
 	this.size = random(6);
 	this.y = 432-this.size*6;
 	this.draw = function()
@@ -278,7 +336,7 @@ function Tree(){
 	};
 }
 function Mountain(){
-	this.x = random(max_x);
+	this.x = random(maxX);
 	this.y = random(300);
 	this.size = random(8);
 	this.draw = function()
@@ -307,7 +365,7 @@ function Mountain(){
 	};
 }
 function Star(){
-	this.x = random(max_x);
+	this.x = random(maxX);
 	this.y = random(425);
 	this.draw = function()
 	{
@@ -323,7 +381,7 @@ function Star(){
 }
 function Rock()
 {
-	this.x = random(max_x);
+	this.x = random(maxX);
 	this.y = random(120);
 	this.size = random(8) + 2;
 	this.draw = function()
@@ -332,11 +390,11 @@ function Rock()
 		if (i==0){fill(65, 53, 67,50);}
 		else if (i==1){fill(240, 235, 141,50);}
 		else{fill(143, 67, 238, 50);}
-		ellipse(this.x,floorPos_y + 25 + this.y,this.size,this.size-3);
+		ellipse(this.x,floorPosY + 25 + this.y,this.size,this.size-3);
 	}
 }
 function Cloud(){
-	this.x = random(max_x);
+	this.x = random(maxX);
 	this.y = random(100);
 	this.size = random(8);
 	this.draw = function()
@@ -356,7 +414,7 @@ function Collectable(x, y = 410){
 	this.y = y;
 	this.size = 7;
 	this.isFound = false;
-	this.token_draw = function ()
+	this.tokenDraw = function ()
 	{
 		noStroke();
 		fill(255,215,0,90);
@@ -375,13 +433,13 @@ function Collectable(x, y = 410){
 	{
 		if (this.isFound == false)
 		{
-			this.token_draw();
-			if (dist(cameraPosX + char_info.gameChar_x,char_info.gameChar_y,this.x, 
+			this.tokenDraw();
+			if (dist(cameraPosX + charInfo.gameCharX,charInfo.gameCharY,this.x, 
 						this.y) < 25)
 			{
 				this.isFound = true;
-				game_score += 1;
-				coinSound.play();
+				gameScore += 1;
+				gameSounds.coinSound.play();
 			}
 		}
 	},
@@ -397,76 +455,98 @@ function Canyon(x,size = 2){
 	this.width = 70 * this.size;
 	this.checkCanyon = function()
 	{
-		if((this.x + this.width > cameraPosX + char_info.gameChar_x) && (cameraPosX + char_info.gameChar_x > this.x) && char_info.gameChar_y >= floorPos_y)
+		if((this.x + this.width > cameraPosX + charInfo.gameCharX) && (cameraPosX + charInfo.gameCharX > this.x) && charInfo.gameCharY >= floorPosY)
 		{
-			char_info.isPlummeting = true;
+			charInfo.isPlummeting = true;
 		}
 	};
 	this.draw = function()
 	{
 		noStroke();
 		fill(169, 113, 85);
-		rect(this.x,floorPos_y,this.width,200);
+		rect(this.x,floorPosY,this.width,200);
 		this.checkCanyon();
 	};
 }
-function Flagpole(){
+function Flagpole(x = maxX - 250){
 	this.isReached= false;
-	this.x_pos= max_x - 250;
-	this.sound_played = false;
+	this.xPos= x;
+	this.soundPlayed = false;
 	this.renderFladgpole = function(){
 		strokeWeight(5);
 		stroke(255);
-		line(this.x_pos,floorPos_y,this.x_pos,floorPos_y - 250);
+		line(this.xPos,floorPosY,this.xPos,floorPosY - 250);
 		fill(135,206,250);
 		if (this.isReached)
 		{
-			if(this.sound_played == false)
-			{
-				winSound.play();
-				this.sound_played = true;
-			}
-			let fetced_all = true;
-			for (let i = 0 ; i < sceneryObjs.collectables.obj.length; i++)
-			{
-				if(sceneryObjs.collectables.obj[i].isFound == false){fetced_all = false}
-			}
-			rect(this.x_pos,this - 250,80,20);
-			let message = ''
-			if(fetced_all){
-				message = `              You Win! 
-Press space to play again.`;
-				message_board(message,450,140);
-			} else {
-				message = `           Level complete.
-But you didn't get all coins. 
-Press space to play again.`;
-				message_board(message,450,180);
-			}
-			game_lock = true;
-			runConfetties();
+			phaseFinished();
 		}
 		else{
-			rect(this.x_pos,floorPos_y - 20,80,20);
+			rect(this.xPos,floorPosY - 20,80,20);
 		}
-	}
+	};
 	this.checkFlagpole = function(){
-		if (char_info.gameChar_x + cameraPosX >= this.x)
+		if (charInfo.gameCharX + cameraPosX >= this.xPos)
 		{
-			console.log('reached')
 			this.isReached = true;
 		}
-		// let finish_dist = abs(dist(this.x_pos, 
-		// 						floorPos_y, 
-		// 						char_info.gameChar_x + cameraPosX, 
-		// 						char_info.gameChar_y
-		// 					)
-		// // 				)
-		// if (finish_dist <= 15)
-		// {
-		// 	this.isReached = true;
-		// }
 	};
+	this.draw = function()
+	{
+		this.renderFladgpole();
+		if(this.isReached == false)
+		{
+			this.checkFlagpole();
+		}
+	}
+	this.reset = function ()
+	{
+		this.isReached = false;
+		this.soundPlayed = false;
+	}
+}
+function phaseFinished()
+{
+	rect(this.xPos,this - 250,80,20);
+	if(this.soundPlayed == false)
+	{
+		gameSounds.winSound.play();
+		sceneryObjs.collectables.obj[0].soundPlayed = true;
+	}
+	let fetcedAll = true;
+	for (let i = 0 ; i < sceneryObjs.collectables.obj.length; i++)
+	{
+		if(sceneryObjs.collectables.obj[i].isFound == false){fetcedAll = false}
+	}
+	let message = {width: 450,
+					height: 180,
+					boxPosX:0}
+	if(fetcedAll)
+	{
+		if (gameMetadata.gameLevel == 1)
+		{
+			message.phrase = `      Level ${gameMetadata.gameLevel} Completed! 
+       Press space to play 
+         the next level.`;
+		}
+		else
+		{
+			message.phrase = `              You Win! 
+Press space to play again.`;
+			message.height = 140;
+		}
+		gameMetadata.changeLevel = true;
+		runConfetties();
+	} 
+	else 
+	{
+		message.phrase = `           Level finished.
+But you didn't get all coins. 
+  Press space to try again.`;
+        message.boxPosX = cameraPosX;
+	}
+	messageBoard(message.phrase,message.width,message.height,message.boxPosX);
+	gameMetadata.gameLock = true;
 }
 function Platform(x,y,length){
 	this.x = x;
@@ -478,10 +558,10 @@ function Platform(x,y,length){
 		rect(this.x,this.y,length,20);
 	}
 	this.checkContact = function(){
-		let gc_x = char_info.gameChar_x + cameraPosX;
-		if((gc_x > this.x) && (gc_x < this.x + this.length))
+		let gcX = charInfo.gameCharX + cameraPosX;
+		if((gcX > this.x) && (gcX < this.x + this.length))
 		{
-			let d = this.y - char_info.gameChar_y;
+			let d = this.y - charInfo.gameCharY;
 			if(d >= 0 && d < 5)
 			{
 				return true;
@@ -535,53 +615,53 @@ function Enemy(x,y,range)
 		let isContact = this.checkContact();
 		if (isContact)
 		{
-			char_info.isPlummeting = true
+			charInfo.isPlummeting = true
 		}
 	}
 	this.checkContact = function()
 	{
-		var d = dist(char_info.gameChar_x + cameraPosX, char_info.gameChar_y, this.currentX, this.y)
+		var d = dist(charInfo.gameCharX + cameraPosX, charInfo.gameCharY, this.currentX, this.y)
 		if (d < 20){return true;}
 		return false
 	}
 }
-function drawObjectsInArray(array_obj)
+function drawObjectsInArray(arrayObj)
 {
-	for (let i = 0; i < array_obj.length; i++) 
+	for (let i = 0; i < arrayObj.length; i++) 
 	{
-		array_obj[i].draw();
+		arrayObj[i].draw();
 	}
 }
-function heart(x_inp,y_inp, r)
+function heart(x,y, r)
 {
 	noStroke();
 	fill(255);
 	beginShape();
 	for (let a = 0; a < TWO_PI; a += 0.1) {
-		const x = x_inp + r * 16 * pow(sin(a), 3);
-		const y = y_inp + -r * (13 * cos(a) - 5 * cos(2 * a) - 2 * cos(3 * a) - cos(4 * a));
+		let xPos = x + r * 16 * pow(sin(a), 3);
+		let yPos = y + -r * (13 * cos(a) - 5 * cos(2 * a) - 2 * cos(3 * a) - cos(4 * a));
 
-		vertex(x, y);
+		vertex(xPos, yPos);
 	}
 	endShape();
 }
-function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
+function charCameraCordination(charInfo,cameraPosX,floorPosY)
 {
-	if (char_info.isPlummeting == true)
+	if (charInfo.isPlummeting == true)
 	{
-		char_info.gameChar_y += 8;
+		charInfo.gameCharY += 8;
 	}
-	else if (char_info.isLeft == true)
+	else if (charInfo.isLeft == true)
 	{
-		if ((cameraPosX < max_x - width) && (char_info.gameChar_x > 200))
+		if ((cameraPosX < maxX - width) && (charInfo.gameCharX > 200))
 		{
-			char_info.gameChar_x -= 5;
+			charInfo.gameCharX -= 5;
 		}
 		else if (cameraPosX < 0)
 		{
-			if (char_info.gameChar_x > 0)
+			if (charInfo.gameCharX > 0)
 			{
-				char_info.gameChar_x -= 5;
+				charInfo.gameCharX -= 5;
 			}
 		}
 		else
@@ -589,17 +669,17 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 			cameraPosX -= 5;
 		}
 	}
-	else if (char_info.isRight == true)
+	else if (charInfo.isRight == true)
 	{
-		if ((cameraPosX <= 0) && (char_info.gameChar_x < 200))
+		if ((cameraPosX <= 0) && (charInfo.gameCharX < 200))
 		{
-			char_info.gameChar_x += 5;
+			charInfo.gameCharX += 5;
 		}
-		else if (cameraPosX > max_x - width)
+		else if (cameraPosX > maxX - width)
 		{
-			if (char_info.gameChar_x <= width - 100)
+			if (charInfo.gameCharX <= width - 100)
 			{
-				char_info.gameChar_x += 5;
+				charInfo.gameCharX += 5;
 			}
 		}
 		else
@@ -608,7 +688,7 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 		}
 	}
 
-	if (char_info.gameChar_y < floorPos_y)
+	if (charInfo.gameCharY < floorPosY)
 	{
 		let isContact = false;
 		for(let i = 0; i< sceneryObjs.platforms.obj.length; i++)
@@ -616,38 +696,31 @@ function char_and_camera_cordination(char_info,cameraPosX,floorPos_y)
 			if (sceneryObjs.platforms.obj[i].checkContact())
 			{
 				isContact = true;
-				char_info.gameChar_y = sceneryObjs.platforms.obj[i].y;
+				charInfo.gameCharY = sceneryObjs.platforms.obj[i].y;
 				break;
 			}
 		}
 		if (isContact == false)
 		{
-			char_info.gameChar_y += 4;
-			char_info.isFalling = true;
+			charInfo.gameCharY += 4;
+			charInfo.isFalling = true;
 		}
 	}
 	else 
 	{
-		char_info.isFalling = false;
+		charInfo.isFalling = false;
 	}
-	return char_info, cameraPosX
+	return charInfo, cameraPosX
 }
 function reset()
 {
-	char_info.gameChar_x = 200;
-			char_info.gameChar_y = floorPos_y;
-			char_info.isLeft = false;
-			char_info.isRight = false;
-			char_info.isFalling = false;
-			char_info.isPlummeting = false;
-			char_info.lives -= 1;
-			cameraPosX = 0;
-			Object.entries(sceneryObjs.collectables.obj).forEach(([key, collectable]) => {
-				collectable.isFound = false
-			});
-			game_score = 0;
-			flagpole.isReached = false;
-			flagpole.sound_played = false;
+	charInfo.reset();
+	cameraPosX = 0;
+	Object.entries(sceneryObjs.collectables.obj).forEach(([key, collectable]) => {
+		collectable.isFound = false
+	});
+	gameScore = 0;
+	sceneryObjs.flagpoles.obj[0].reset();
 }
 function backgroundSetUp()
 {
@@ -692,44 +765,42 @@ function backgroundSetUp()
 															sceneryObjs.enemies.location[i].y,
 															sceneryObjs.enemies.location[i].range));
 	}
-	console.log(sceneryObjs.enemies)
-	
+	sceneryObjs.flagpoles.obj.push(new Flagpole());
 }
 function startGame()
 {
 	cameraPosX = 0;
-	game_score = 0;
-	char_info = new Character();
-	flagpole = new Flagpole();
-	//generate objects in the arrays
-	backgroundSetUp();
+	gameScore = 0;
+	charInfo = new Character();
+	// levelOne();
+	levelTwo();
 	setupConfetti();
-	start_playing_button = {x:width/2 - 90,
+	startPlayingButton = {x:width/2 - 90,
 							y:height/2+40,
 							width: 200,
 							height: 80,
-							is_pressed:false
+							isPressed:false
 						}
 }
-function button_draw(message){
-	if ((mouseX > start_playing_button.x) && 
-		(mouseX < start_playing_button.x+start_playing_button.width) && 
-		(mouseY > start_playing_button.y) && 
-		(mouseY < start_playing_button.y+start_playing_button.height))
+function buttonDraw(message){
+	if ((mouseX > startPlayingButton.x) && 
+		(mouseX < startPlayingButton.x+startPlayingButton.width) && 
+		(mouseY > startPlayingButton.y) && 
+		(mouseY < startPlayingButton.y+startPlayingButton.height))
 	{
 		fill(212, 173, 252);
-		rect(start_playing_button.x,start_playing_button.y,
-			start_playing_button.width,start_playing_button.height,20);
+		rect(startPlayingButton.x,startPlayingButton.y,
+			startPlayingButton.width,startPlayingButton.height,20);
 	
 		fill(255);
-		text(message, start_playing_button.x + 10,start_playing_button.y + 50);
+		text(message, startPlayingButton.x + 10,startPlayingButton.y + 50);
 	}
 	else{
 		fill(255);
-		rect(start_playing_button.x,start_playing_button.y,
-			start_playing_button.width,start_playing_button.height,20);
+		rect(startPlayingButton.x,startPlayingButton.y,
+			startPlayingButton.width,startPlayingButton.height,20);
 		fill(0);
-		text(message, start_playing_button.x + 10,start_playing_button.y + 50);
+		text(message, startPlayingButton.x + 10,startPlayingButton.y + 50);
 	}
 	noStroke();
 	noFill();
@@ -738,31 +809,32 @@ function drawBoard()
 {
 	noStroke();
 	fill(212, 173, 252);
-	polygon(100,0,100,8);
+	polygon(100,10,100,8);
 	fill(92, 70, 156);
-	polygon(100,0,97,8);
+	polygon(100,10,97,8);
 	fill(255);
 	textFont('Georgia',24);
-	text('Lives: ',37,25);
-	for( let i = 0; i < char_info.lives; i++)
+	text(`Level ${gameMetadata.gameLevel}`, 66, 21)
+	text('Lives: ',35,48);
+	for( let i = 0; i < charInfo.lives; i++)
 	{
-		heart(120 + i * 25,18,0.7);
+		heart(115 + i * 25,40,0.7);
 	}
 	fill(255);
-	text('Score: ' + game_score, 37,60);
+	text('Score: ' + gameScore, 35,73);
 }
 //type is to control the deslocation where necessary
-function message_board(message,message_width,message_heigth, box_pos_x = 0)
+function messageBoard(message,messageWidth,messageHeigth, boxPosX)
 {
-	if (box_pos_x == 0){box_pos_x = cameraPosX + width/2 - message_width/ 2;}
+	boxPosX += width/2 - messageWidth/ 2;
 	fill(212, 173, 252);
-	rect(box_pos_x, height/2 - message_heigth/2 -10,message_width, message_heigth -10);
+	rect(boxPosX, height/2 - messageHeigth/2 -10,messageWidth, messageHeigth -10);
 	fill(92, 70, 156);
-	rect(box_pos_x + 10, height/2 - message_heigth/2,message_width -20, message_heigth-30);
+	rect(boxPosX + 10, height/2 - messageHeigth/2,messageWidth -20, messageHeigth-30);
 	noStroke();
 	fill(255);
 	textFont('Georgia',36 - message.length/30);
-	text(message,box_pos_x + 30, height/2 - message_heigth/2 +40);
+	text(message,boxPosX + 30, height/2 - messageHeigth/2 +40);
 }
 
 // Not my code, credit too: https://editor.p5js.org/slow_izzm/sketches/H1fhGJSaX
@@ -771,10 +843,7 @@ let nouvelle,
   pression;
 
 let themeCouleur = [
-  '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
-  '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
-  '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
-  '#FF5722'
+  '#ECEE81','#8DDFCB','#82A0D8','#EDB7ED'
 ];
 class Particule {
   constructor(parent) {
@@ -888,7 +957,8 @@ function runConfetties(){
 	ancienne.x = nouvelle.x;
 	ancienne.y = nouvelle.y;
 }
-// from p5js documentation
+
+//back to my code
 function polygon(x, y, radius, npoints) {
 	let angle = TWO_PI / npoints;
 	beginShape();
@@ -899,7 +969,6 @@ function polygon(x, y, radius, npoints) {
 	}
 	endShape(CLOSE);
   }
-//back to my code
 function gameWelcome()
 {
 	fill(212, 173, 252);
@@ -910,7 +979,7 @@ function gameWelcome()
 	textFont('Georgia',36);
 	text('Welcome to',width/2-90,height/2- 60);
 	text('Night Monster',width/2-110,height/2- 10);
-	button_draw('Start Game');
+	buttonDraw('Start Game');
 }
 function gameIntroduction()
 {
@@ -929,37 +998,38 @@ Press space to jump.
 
 Press space to start!
 `
-		message_board(message,700,500);
+	messageBoard(message,700,500,0);
 }
 // user actions control
 function keyPressed()
 {
 	if (keyCode == 37)
 	{
-		char_info.isLeft = true;
+		charInfo.isLeft = true;
 	}
 	else if (keyCode == 39)
 	{
-		char_info.isRight = true;
+		charInfo.isRight = true;
 	}
 	else if (keyCode == 32)
 	{
-		if (is_explained == false)
+		if (gameMetadata.isExplained == false)
 		{
-			is_explained = true;
+			gameMetadata.isExplained = true;
 		}
-		else if (game_lock == true)
+		else if (gameMetadata.gameLock == true)
 		{
-			game_lock = false;
+			newLevelCheck();
+			gameMetadata.gameLock = false;
 			reset();
-			char_info.lives = 3;
+			charInfo.lives = 3;
 		}
 		else{
-			jumpSound.play();
-			char_info.gameChar_y -= 100;
-			if (char_info.gameChar_y <= 300)
+			gameSounds.jumpSound.play();
+			charInfo.gameCharY -= 100;
+			if (charInfo.gameCharY <= 100)
 			{
-				char_info.gameChar_y = 300;
+				charInfo.gameCharY = 100;
 			}
 		}
 	}
@@ -968,25 +1038,42 @@ function keyPressed()
 		console.log(key)
 	}
 }
+function newLevelCheck()
+{
+	if (gameMetadata.changeLevel)
+	{
+		if (gameMetadata.gameLevel == 1)
+		{
+			gameMetadata.gameLevel = 2;
+			levelTwo();
+		}
+		else
+		{
+			gameMetadata.gameLevel = 1;
+			levelOne();
+		}
+	}
+	gameMetadata.changeLevel = false;
+}
 function keyReleased()
 {
 	if (keyCode == 37)
 	{
-		char_info.isLeft = false;
+		charInfo.isLeft = false;
 	}
 	else if (keyCode == 39)
 	{
-		char_info.isRight = false;
+		charInfo.isRight = false;
 	}
 }
 function mousePressed() {
-	if ((mouseX > start_playing_button.x) && 
-		(mouseX < start_playing_button.x+start_playing_button.width) && 
-		(mouseY > start_playing_button.y) && 
-		(mouseY < start_playing_button.y+start_playing_button.height))
+	if ((mouseX > startPlayingButton.x) && 
+		(mouseX < startPlayingButton.x+startPlayingButton.width) && 
+		(mouseY > startPlayingButton.y) && 
+		(mouseY < startPlayingButton.y+startPlayingButton.height))
 	{
-		is_game_started = true;
-		start_playing_button.is_pressed = true;
+		gameMetadata.isGameStarted = true;
+		startPlayingButton.isPressed = true;
 	}
 }
 
@@ -997,15 +1084,14 @@ function setup()
 {
 	createCanvas(1024, 576);
 	startGame();
-	game_lock = false;
-	backgound_musicbox.loop();
-	background_crickets.loop();
+	gameSounds.backgoundMusicbox.loop();
+	gameSounds.backgroundCrickets.loop();
 }
 
 function draw()
 {
 	background(6, 0, 71);
-	if (is_game_started && is_explained){
+	if (gameMetadata.isGameStarted && gameMetadata.isExplained){
 		noStroke();
 		fill(26, 95, 122);
 		rect(0, 432, 1024, 20);
@@ -1018,43 +1104,24 @@ function draw()
 		Object.entries(sceneryObjs).forEach(([key, value]) => {
 			drawObjectsInArray(sceneryObjs[key].obj,key);
 		});
-
-		// for (let i = 0; i< enemies.length; i++)
-		// {
-		// 	enemies[i].draw();
-		// 	let isContact = enemies[i].checkContact();
-		// 	if (isContact)
-		// 	{
-		// 		char_info.isPlummeting = true
-		// 	}
-		// }
-		flagpole.renderFladgpole();
 		pop();
 
-		if (game_lock == false)
+		if (gameMetadata.gameLock == false)
 		{
 			//character and camera position control
-			char_info, cameraPosX = char_and_camera_cordination(char_info,
+			charInfo, cameraPosX = charCameraCordination(charInfo,
 																cameraPosX,
-																floorPos_y)
-
+																floorPosY)
 			//character design
 			strokeWeight(1);
-			char_info.character_draw();
+			charInfo.characterDraw();
 		}
-		
 		//print character score
 		drawBoard();
-		
-		if(flagpole.isReached == false)
-		{
-			flagpole.checkFlagpole();
-		}
-		char_info.checkPlayerDie();
-	} else if (is_game_started == false) {
+		charInfo.checkPlayerDie();
+	} else if (gameMetadata.isGameStarted == false) {
 		gameWelcome();
 	} else {
 		gameIntroduction();
 	}
-
 }
