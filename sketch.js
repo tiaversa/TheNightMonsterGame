@@ -87,7 +87,7 @@ function levelTwo()
 										{x:(midScreen - maxX/10)},
 										{x:(midScreen + maxX/4)}],
 							obj:[]},
-					enemies:{location:[{x:740, y:floorPosY - 10, range:150},
+					enemies:{location:[{x:680, y:floorPosY - 10, range:120},
 										{x:1700, y:floorPosY - 10, range:200},
 										{x:2556, y:floorPosY - 10, range:300},
 										{x:(midScreen + maxX/3 -30), y:floorPosY - 10, range:300}],
@@ -103,17 +103,20 @@ function preload(){
     gameSounds.jumpSound = loadSound('assets/jump.wav');
     gameSounds.jumpSound.setVolume(0.1);
 	//music bo sound https://freesound.org/people/DRFX/sounds/338986/
-	gameSounds.backgoundMusicbox = loadSound('assets/music_box.mp3');
-    gameSounds.backgoundMusicbox.setVolume(0.2);
-	//https://freesound.org/people/justiiiiin/sounds/365075/
+	gameSounds.backgoundMusicbox = loadSound('assets/Winds_Of_Stories.mp3');
+    gameSounds.backgoundMusicbox.setVolume(0.3);
+	//https://opengameart.org/content/winds-of-stories
 	gameSounds.backgroundCrickets = loadSound('assets/crickets_night.wav');
     gameSounds.backgroundCrickets.setVolume(0.1);
 	//https://freesound.org/people/robbeman/sounds/495642/
 	gameSounds.coinSound = loadSound('assets/coin.wav');
-    gameSounds.coinSound.setVolume(0.1);
+    gameSounds.coinSound.setVolume(0.5);
 	//https://freesound.org/people/LittleRobotSoundFactory/sounds/274181/
 	gameSounds.winSound = loadSound('assets/win.wav');
     gameSounds.winSound.setVolume(0.2);
+	gameSounds.cheer = loadSound('assets/applause.wav');
+	gameSounds.cheer.setVolume(0.4);
+	//https://opengameart.org/content/applause
 }
 //character set up
 function Character(){
@@ -479,7 +482,8 @@ function Flagpole(x = maxX - 250){
 		fill(135,206,250);
 		if (this.isReached)
 		{
-			phaseFinished();
+			rect(this.xPos,floorPosY - 240,80,20);
+			this.soundPlayed = phaseFinished(this.soundPlayed);
 		}
 		else{
 			rect(this.xPos,floorPosY - 20,80,20);
@@ -505,13 +509,17 @@ function Flagpole(x = maxX - 250){
 		this.soundPlayed = false;
 	}
 }
-function phaseFinished()
+function phaseFinished(soundPlayed)
 {
-	rect(this.xPos,this - 250,80,20);
-	if(this.soundPlayed == false)
+	if(soundPlayed == false)
 	{
 		gameSounds.winSound.play();
+		if (gameMetadata.gameLevel == 2)
+		{
+			gameSounds.cheer.play();
+		}
 		sceneryObjs.collectables.obj[0].soundPlayed = true;
+		soundPlayed = true;
 	}
 	let fetcedAll = true;
 	for (let i = 0 ; i < sceneryObjs.collectables.obj.length; i++)
@@ -547,15 +555,20 @@ But you didn't get all coins.
 	}
 	messageBoard(message.phrase,message.width,message.height,message.boxPosX);
 	gameMetadata.gameLock = true;
+	return soundPlayed
 }
-function Platform(x,y,length){
+function Platform(x,y,length,range = 20){
 	this.x = x;
 	this.y = y;
+	this.inc =0.2;
+	this.range = range;
+	this.currentX = x + floor(random(range - 1));
 	this.length = length;
 	this.draw = function()
 	{
+		this.update();
 		fill(255,0,255);
-		rect(this.x,this.y,length,20);
+		rect(this.currentX,this.y,length,20,30);
 	}
 	this.checkContact = function(){
 		let gcX = charInfo.gameCharX + cameraPosX;
@@ -570,6 +583,18 @@ function Platform(x,y,length){
 		}
 		return false;
 	};
+	this.update = function()
+	{
+		this.currentX += this.inc;
+		if (this.checkContact())
+		{
+			charInfo.gameCharX += this.inc;
+		}
+		if((this.currentX >= this.x + this.range) || (this.currentX < this.x))
+		{
+			this.inc *= -1
+		}
+	}
 }
 function Enemy(x,y,range)
 {
@@ -772,8 +797,7 @@ function startGame()
 	cameraPosX = 0;
 	gameScore = 0;
 	charInfo = new Character();
-	// levelOne();
-	levelTwo();
+	levelOne();
 	setupConfetti();
 	startPlayingButton = {x:width/2 - 90,
 							y:height/2+40,
@@ -1072,6 +1096,7 @@ function mousePressed() {
 		(mouseY > startPlayingButton.y) && 
 		(mouseY < startPlayingButton.y+startPlayingButton.height))
 	{
+		gameSounds.backgoundMusicbox.play();
 		gameMetadata.isGameStarted = true;
 		startPlayingButton.isPressed = true;
 	}
