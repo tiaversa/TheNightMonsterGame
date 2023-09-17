@@ -522,10 +522,7 @@ function phaseFinished(soundPlayed)
 		soundPlayed = true;
 	}
 	let fetcedAll = true;
-	for (let i = 0 ; i < sceneryObjs.collectables.obj.length; i++)
-	{
-		if(sceneryObjs.collectables.obj[i].isFound == false){fetcedAll = false}
-	}
+	sceneryObjs.collectables.obj.forEach(i => {if(i.isFound == false){fetcedAll = false}});
 	let message = {width: 450,
 					height: 180,
 					boxPosX:0}
@@ -652,10 +649,7 @@ function Enemy(x,y,range)
 }
 function drawObjectsInArray(arrayObj)
 {
-	for (let i = 0; i < arrayObj.length; i++) 
-	{
-		arrayObj[i].draw();
-	}
+	arrayObj.forEach(i => {i.draw();});
 }
 function heart(x,y, r)
 {
@@ -716,15 +710,13 @@ function charCameraCordination(charInfo,cameraPosX,floorPosY)
 	if (charInfo.gameCharY < floorPosY)
 	{
 		let isContact = false;
-		for(let i = 0; i< sceneryObjs.platforms.obj.length; i++)
-		{
-			if (sceneryObjs.platforms.obj[i].checkContact())
+		sceneryObjs.platforms.obj.forEach(i => {
+			if (i.checkContact())
 			{
 				isContact = true;
-				charInfo.gameCharY = sceneryObjs.platforms.obj[i].y;
-				break;
+				charInfo.gameCharY = i.y;
 			}
-		}
+		});
 		if (isContact == false)
 		{
 			charInfo.gameCharY += 4;
@@ -741,9 +733,7 @@ function reset()
 {
 	charInfo.reset();
 	cameraPosX = 0;
-	Object.entries(sceneryObjs.collectables.obj).forEach(([key, collectable]) => {
-		collectable.isFound = false
-	});
+	sceneryObjs.collectables.obj.forEach(c => {c.isFound = false;});
 	gameScore = 0;
 	sceneryObjs.flagpoles.obj[0].reset();
 }
@@ -769,27 +759,10 @@ function backgroundSetUp()
 	{
 		sceneryObjs.clouds.obj.push(new Cloud());
 	}
-	for(let i = 0; i < sceneryObjs.canyons.location.length; i++)
-	{
-		sceneryObjs.canyons.obj.push(new Canyon(sceneryObjs.canyons.location[i].x));
-	}
-	for(let i = 0; i < sceneryObjs.collectables.location.length; i++)
-	{
-		sceneryObjs.collectables.obj.push(new Collectable(sceneryObjs.collectables.location[i].x,
-															sceneryObjs.collectables.location[i].y));
-	}
-	for(let i = 0; i < sceneryObjs.platforms.location.length; i++)
-	{
-		sceneryObjs.platforms.obj.push(new Platform(sceneryObjs.platforms.location[i].x,
-															sceneryObjs.platforms.location[i].y,
-															sceneryObjs.platforms.location[i].length));
-	}
-	for(let i = 0; i < sceneryObjs.enemies.location.length; i++)
-	{
-		sceneryObjs.enemies.obj.push(new Enemy(sceneryObjs.enemies.location[i].x,
-															sceneryObjs.enemies.location[i].y,
-															sceneryObjs.enemies.location[i].range));
-	}
+	sceneryObjs.canyons.location.forEach(c => {sceneryObjs.canyons.obj.push(new Canyon(c.x));});
+	sceneryObjs.collectables.location.forEach(c => {sceneryObjs.collectables.obj.push(new Collectable(c.x,c.y));});
+	sceneryObjs.platforms.location.forEach(p => {sceneryObjs.platforms.obj.push(new Platform(p.x,p.y,p.length));});
+	sceneryObjs.enemies.location.forEach(e => {sceneryObjs.enemies.obj.push(new Enemy(e.x,e.y,e.range));});
 	sceneryObjs.flagpoles.obj.push(new Flagpole());
 }
 function startGame()
