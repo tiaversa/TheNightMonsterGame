@@ -4,9 +4,10 @@ Class: Introduction to Programming */
 
 
 const floorPosY = 432;
+const ceiling = -250;
 let maxX;
 let midScreen;
-let cameraPosX;
+let cameraPos = {x:0, y:0};
 let startPlayingButton;
 
 let charInfo;
@@ -27,14 +28,15 @@ function levelOne()
 	maxX = 3000;
 	midScreen = maxX/2;
 	sceneryObjs = {rocks:{amount:850,obj:[]},
-					stars:{amount:1050,obj:[]},
-					mountains:{amount:20,obj:[]},
-					trees:{amount:10,obj:[]},
-					clouds:{amount:15,obj:[]},
+					stars:{amount:1550,obj:[]},
+					mountains:{amount:15,obj:[]},
+					trees:{amount:8,obj:[]},
+					clouds:{amount:35,obj:[]},
 					platforms:{location:[{x:750,y:floorPosY - 100,length:120},
 										{x:1720,y:floorPosY - 100,length:120},
 										{x:2400,y:floorPosY - 100,length:120},
-										{x:2470,y:floorPosY - 200,length:120}],
+										{x:2470,y:floorPosY - 200,length:120}
+								],
 							obj:[]},
 					collectables:{location:[{x:(midScreen - maxX/2.5),y:410},
 											{x:(midScreen - maxX/6),y:410},
@@ -46,10 +48,12 @@ function levelOne()
 							obj:[]},
 					canyons:{location:[{x:(midScreen - maxX/3)},
 										{x:(midScreen - maxX/10)},
-										{x:(midScreen + maxX/4)}],
+										{x:(midScreen + maxX/4)}
+									],
 							obj:[]},
 					enemies:{location:[{x:740, y:floorPosY - 10, range:150},
-										{x:1700, y:floorPosY - 10, range:200}],
+										{x:1700, y:floorPosY - 10, range:200}
+									],
 							obj:[]},
 					flagpoles:{obj:[]}
 				};
@@ -60,17 +64,17 @@ function levelTwo()
 	maxX = 5000;
 	midScreen = maxX/2;
 	sceneryObjs = {rocks:{amount:1250,obj:[]},
-					stars:{amount:1550,obj:[]},
+					stars:{amount:2050,obj:[]},
 					mountains:{amount:30,obj:[]},
-					trees:{amount:30,obj:[]},
-					clouds:{amount:20,obj:[]},
-					platforms:{location:[{x:750,y:floorPosY - 100,length:120},
-										{x:1720,y:floorPosY - 100,length:120},
-										{x:2400,y:floorPosY - 100,length:120},
+					trees:{amount:20,obj:[]},
+					clouds:{amount:45,obj:[]},
+					platforms:{location:[{x:750,y:floorPosY - 95,length:120},
+										{x:1720,y:floorPosY - 95,length:120},
+										{x:2400,y:floorPosY - 95,length:120},
 										{x:2470,y:floorPosY - 190,length:120},
-										{x:2540,y:floorPosY - 290,length:120},
-										{x:3100,y:floorPosY - 100,length:120},
-										{x:3170,y:floorPosY - 200,length:120}],
+										{x:2540,y:floorPosY - 285,length:120},
+										{x:3100,y:floorPosY - 95,length:120},
+										{x:3170,y:floorPosY - 190,length:120}],
 							obj:[]},
 					collectables:{location:[{x:800,y:floorPosY - 118},
 											{x:(midScreen - maxX/6),y:410},
@@ -80,7 +84,7 @@ function levelTwo()
 											{x:2490,y:floorPosY - 210},
 											{x:2556,y:floorPosY - 308},
 											{x:2660,y:floorPosY - 308},
-											{x:3090,y:410},
+											{x:3090,y:412},
 											{x:3140,y:floorPosY - 240},],
 							obj:[]},
 					canyons:{location:[{x:(midScreen - maxX/3)},
@@ -201,6 +205,7 @@ function Character(){
 			this.gameCharY - 1.3 * this.charSize);
 	};
 	this.headBackground = function (){
+		noStroke();
 		this.horns(this.gameCharX,
 					this.gameCharY,
 					this.charSize);
@@ -281,6 +286,7 @@ function Character(){
 			this.stand(-1);
 			this.stand(1);
 		}
+		this.checkPlayerDie();
 	};
 	this.checkPlayerDie = function ()
 	{
@@ -308,12 +314,13 @@ Press space to continue.`;
 		this.isFalling = false;
 		this.isPlummeting = false;
 		this.lives -= 1;
+		cameraPos.x = 0;
 	}
 }
 //game view
 function Tree(){
-	this.x = random(maxX);
-	this.size = random(6);
+	this.x = random(-300,maxX + 300);
+	this.size = random(1,6);
 	this.y = 432-this.size*6;
 	this.draw = function()
 	{
@@ -339,9 +346,9 @@ function Tree(){
 	};
 }
 function Mountain(){
-	this.x = random(maxX);
+	this.x = random(-300,maxX + 300);
 	this.y = random(300);
-	this.size = random(8);
+	this.size = random(1,8);
 	this.draw = function()
 	{
 		this.y=432;
@@ -368,8 +375,8 @@ function Mountain(){
 	};
 }
 function Star(){
-	this.x = random(maxX);
-	this.y = random(425);
+	this.x = random(-300,maxX + 300);
+	this.y = random(ceiling,425);
 	this.draw = function()
 	{
 		let i = floor(random(5));
@@ -384,8 +391,8 @@ function Star(){
 }
 function Rock()
 {
-	this.x = random(maxX);
-	this.y = random(120);
+	this.x = random(-300,maxX + 300);
+	this.y = random(220);
 	this.size = random(8) + 2;
 	this.draw = function()
 	{
@@ -397,9 +404,9 @@ function Rock()
 	}
 }
 function Cloud(){
-	this.x = random(maxX);
-	this.y = random(100);
-	this.size = random(8);
+	this.x = random(-300,maxX + 300);
+	this.y = random(ceiling,250);
+	this.size = random(1,8);
 	this.draw = function()
 	{
 		noStroke();
@@ -437,7 +444,7 @@ function Collectable(x, y = 410){
 		if (this.isFound == false)
 		{
 			this.tokenDraw();
-			if (dist(cameraPosX + charInfo.gameCharX,charInfo.gameCharY,this.x, 
+			if (dist(charInfo.gameCharX,charInfo.gameCharY,this.x, 
 						this.y) < 25)
 			{
 				this.isFound = true;
@@ -452,13 +459,13 @@ function Collectable(x, y = 410){
 	}
 	;
 }
-function Canyon(x,size = 2){
+function Canyon(x,size = 1){
 	this.x = x;
 	this.size = size;
 	this.width = 70 * this.size;
 	this.checkCanyon = function()
 	{
-		if((this.x + this.width > cameraPosX + charInfo.gameCharX) && (cameraPosX + charInfo.gameCharX > this.x) && charInfo.gameCharY >= floorPosY)
+		if((this.x + this.width > charInfo.gameCharX) && (charInfo.gameCharX > this.x) && charInfo.gameCharY >= floorPosY)
 		{
 			charInfo.isPlummeting = true;
 		}
@@ -490,7 +497,7 @@ function Flagpole(x = maxX - 250){
 		}
 	};
 	this.checkFlagpole = function(){
-		if (charInfo.gameCharX + cameraPosX >= this.xPos)
+		if (charInfo.gameCharX >= this.xPos)
 		{
 			this.isReached = true;
 		}
@@ -548,7 +555,7 @@ Press space to play again.`;
 		message.phrase = `           Level finished.
 But you didn't get all coins. 
   Press space to try again.`;
-        message.boxPosX = cameraPosX;
+        message.boxPosX = cameraPos.x;
 	}
 	messageBoard(message.phrase,message.width,message.height,message.boxPosX);
 	gameMetadata.gameLock = true;
@@ -568,8 +575,7 @@ function Platform(x,y,length,range = 20){
 		rect(this.currentX,this.y,length,20,30);
 	}
 	this.checkContact = function(){
-		let gcX = charInfo.gameCharX + cameraPosX;
-		if((gcX > this.x) && (gcX < this.x + this.length))
+		if((charInfo.gameCharX > this.x) && (charInfo.gameCharX < this.x + this.length))
 		{
 			let d = this.y - charInfo.gameCharY;
 			if(d >= 0 && d < 5)
@@ -586,6 +592,7 @@ function Platform(x,y,length,range = 20){
 		if (this.checkContact())
 		{
 			charInfo.gameCharX += this.inc;
+			charInfo.isFalling = false;
 		}
 		if((this.currentX >= this.x + this.range) || (this.currentX < this.x))
 		{
@@ -642,7 +649,7 @@ function Enemy(x,y,range)
 	}
 	this.checkContact = function()
 	{
-		var d = dist(charInfo.gameCharX + cameraPosX, charInfo.gameCharY, this.currentX, this.y)
+		var d = dist(charInfo.gameCharX, charInfo.gameCharY, this.currentX, this.y)
 		if (d < 20){return true;}
 		return false
 	}
@@ -664,7 +671,7 @@ function heart(x,y, r)
 	}
 	endShape();
 }
-function charCameraCordination(charInfo,cameraPosX,floorPosY)
+function charCordination(charInfo)
 {
 	if (charInfo.isPlummeting == true)
 	{
@@ -672,38 +679,24 @@ function charCameraCordination(charInfo,cameraPosX,floorPosY)
 	}
 	else if (charInfo.isLeft == true)
 	{
-		if ((cameraPosX < maxX - width) && (charInfo.gameCharX > 200))
+		if (charInfo.gameCharX <= 5)
 		{
-			charInfo.gameCharX -= 5;
+			charInfo.gameCharX = 0;
 		}
-		else if (cameraPosX < 0)
+		else 
 		{
-			if (charInfo.gameCharX > 0)
-			{
-				charInfo.gameCharX -= 5;
-			}
-		}
-		else
-		{
-			cameraPosX -= 5;
+			charInfo.gameCharX -=5;
 		}
 	}
 	else if (charInfo.isRight == true)
 	{
-		if ((cameraPosX <= 0) && (charInfo.gameCharX < 200))
+		if (charInfo.gameCharX >= maxX - 5)
 		{
-			charInfo.gameCharX += 5;
+			charInfo.gameCharX = maxX;
 		}
-		else if (cameraPosX > maxX - width)
+		else 
 		{
-			if (charInfo.gameCharX <= width - 100)
-			{
-				charInfo.gameCharX += 5;
-			}
-		}
-		else
-		{
-			cameraPosX += 5;
+			charInfo.gameCharX +=5;
 		}
 	}
 
@@ -727,12 +720,11 @@ function charCameraCordination(charInfo,cameraPosX,floorPosY)
 	{
 		charInfo.isFalling = false;
 	}
-	return charInfo, cameraPosX
+	return charInfo
 }
 function reset()
 {
 	charInfo.reset();
-	cameraPosX = 0;
 	sceneryObjs.collectables.obj.forEach(c => {c.isFound = false;});
 	gameScore = 0;
 	sceneryObjs.flagpoles.obj[0].reset();
@@ -767,7 +759,6 @@ function backgroundSetUp()
 }
 function startGame()
 {
-	cameraPosX = 0;
 	gameScore = 0;
 	charInfo = new Character();
 	levelOne();
@@ -1022,8 +1013,12 @@ function keyPressed()
 			charInfo.lives = 3;
 		}
 		else{
-			gameSounds.jumpSound.play();
-			charInfo.gameCharY -= 100;
+			console.log(charInfo.isFalling);
+			if (charInfo.isFalling == false)
+			{
+				gameSounds.jumpSound.play();
+				charInfo.gameCharY -= 120;
+			}
 			if (charInfo.gameCharY <= 100)
 			{
 				charInfo.gameCharY = 100;
@@ -1082,7 +1077,6 @@ function setup()
 {
 	createCanvas(1024, 576);
 	startGame();
-	gameSounds.backgoundMusicbox.loop();
 	gameSounds.backgroundCrickets.loop();
 }
 
@@ -1090,33 +1084,40 @@ function draw()
 {
 	background(6, 0, 71);
 	if (gameMetadata.isGameStarted && gameMetadata.isExplained){
+		push();
+		const newCameraPosX = charInfo.gameCharX - width / 2;
+		const newCameraPosY = charInfo.gameCharY - floorPosY + 20;
+		console.log(newCameraPosX,charInfo.gameCharX)
+		if ((charInfo.gameCharX > width / 2) && (charInfo.gameCharX < maxX - width / 2))
+		{
+			cameraPos.x = cameraPos.x *0.85 + newCameraPosX * 0.15;
+		}
+		if (charInfo.isPlummeting == false)
+		{
+			cameraPos.y = cameraPos.y *0.945 + newCameraPosY * 0.055;
+		}
+		translate(-cameraPos.x, -cameraPos.y);
+
 		noStroke();
 		fill(26, 95, 122);
-		rect(0, 432, 1024, 20);
+		rect(0, 432, maxX, 20);
 		fill(5, 45, 72);
-		rect(0,452,1024, 120);
-		push();
-
-		translate(-cameraPosX, 0);
+		rect(0,452,maxX, 250);
 		// drawing each object in the arrays
 		Object.entries(sceneryObjs).forEach(([key, value]) => {
 			drawObjectsInArray(sceneryObjs[key].obj,key);
 		});
-		pop();
-
 		if (gameMetadata.gameLock == false)
 		{
 			//character and camera position control
-			charInfo, cameraPosX = charCameraCordination(charInfo,
-																cameraPosX,
-																floorPosY)
+			charInfo = charCordination(charInfo)
 			//character design
 			strokeWeight(1);
 			charInfo.characterDraw();
 		}
+		pop();
 		//print character score
 		drawBoard();
-		charInfo.checkPlayerDie();
 	} else if (gameMetadata.isGameStarted == false) {
 		gameWelcome();
 	} else {
