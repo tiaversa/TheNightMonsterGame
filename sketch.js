@@ -264,6 +264,7 @@ function Character(){
 		fill(255,116,177);
 	};
 	this.characterDraw = function (){
+		strokeWeight(1);
 		if (this.isLeft && this.isFalling){
 			if (this.isLeft){this.characterMove('left');}
 			if (this.isRight){this.characterMove('right');}
@@ -292,6 +293,7 @@ function Character(){
 	{
 		if ((this.isPlummeting) && (this.gameCharY > height))
 		{
+			console.log("dead, and p")
 			if (this.lives > 1)
 			{
 				reset();
@@ -300,7 +302,7 @@ function Character(){
 				message = `         Game over. 
 Press space to continue.`;
 				if (this.lives > 0) {this.lives = 0;}
-				messageBoard(message,420,150, 300,0);
+				messageBoard(message,420,150, 300);
 				gameMetadata.gameLock = true;
 			}
 		}
@@ -530,34 +532,31 @@ function phaseFinished(soundPlayed)
 	}
 	let fetcedAll = true;
 	sceneryObjs.collectables.obj.forEach(i => {if(i.isFound == false){fetcedAll = false}});
-	let message = {width: 450,
-					height: 180,
-					boxPosX:0}
+	let phrase;
 	if(fetcedAll)
 	{
 		if (gameMetadata.gameLevel == 1)
 		{
-			message.phrase = `      Level ${gameMetadata.gameLevel} Completed! 
+			phrase = `      Level ${gameMetadata.gameLevel} Completed! 
        Press space to play 
          the next level.`;
 		}
 		else
 		{
-			message.phrase = `              You Win! 
+			phrase = `              You Win! 
 Press space to play again.`;
-			message.height = 140;
 		}
 		gameMetadata.changeLevel = true;
 		runConfetties();
+		messageWin(phrase);
 	} 
 	else 
 	{
-		message.phrase = `           Level finished.
+		phrase = `           Level finished.
 But you didn't get all coins. 
   Press space to try again.`;
-        message.boxPosX = cameraPos.x;
 	}
-	messageBoard(message.phrase,message.width,message.height,message.boxPosX);
+	messageBoard(phrase,450,180);
 	gameMetadata.gameLock = true;
 	return soundPlayed
 }
@@ -812,17 +811,33 @@ function drawBoard()
 	text('Score: ' + gameScore, 35,73);
 }
 //type is to control the deslocation where necessary
-function messageBoard(message,messageWidth,messageHeigth, boxPosX)
+function messageBoard(message,messageWidth,messageHeigth)
 {
-	boxPosX += width/2 - messageWidth/ 2;
+	push();
+	translate(cameraPos.x + width/2 - messageWidth/ 2, 0);
 	fill(212, 173, 252);
-	rect(boxPosX, height/2 - messageHeigth/2 -10,messageWidth, messageHeigth -10);
+	rect(0, height/2 - messageHeigth/2 -10,messageWidth, messageHeigth -10);
 	fill(92, 70, 156);
-	rect(boxPosX + 10, height/2 - messageHeigth/2,messageWidth -20, messageHeigth-30);
+	rect(10, height/2 - messageHeigth/2,messageWidth -20, messageHeigth-30);
 	noStroke();
 	fill(255);
 	textFont('Georgia',36 - message.length/30);
-	text(message,boxPosX + 30, height/2 - messageHeigth/2 +40);
+	text(message,30, height/2 - messageHeigth/2 +40);
+	pop();
+}
+
+function messageWin(message,messageWidth = 450,messageHeigth = 180)
+{
+	push();
+	fill(212, 173, 252);
+	rect(width/2 - messageWidth/2, height/2 - messageHeigth/2 -10,messageWidth, messageHeigth -10);
+	fill(92, 70, 156);
+	rect(width/2 - messageWidth/2 + 10, height/2 - messageHeigth/2,messageWidth -20, messageHeigth-30);
+	noStroke();
+	fill(255);
+	textFont('Georgia',36 - message.length/30);
+	text(message,width/2 - messageWidth/2 + 30, height/2 - messageHeigth/2 +40);
+	pop();
 }
 
 // Not my code, credit too: https://editor.p5js.org/slow_izzm/sketches/H1fhGJSaX
@@ -986,7 +1001,7 @@ Press space to jump.
 
 Press space to start!
 `
-	messageBoard(message,700,500,0);
+	messageBoard(message,700,500);
 }
 // user actions control
 function keyPressed()
@@ -1013,7 +1028,6 @@ function keyPressed()
 			charInfo.lives = 3;
 		}
 		else{
-			console.log(charInfo.isFalling);
 			if (charInfo.isFalling == false)
 			{
 				gameSounds.jumpSound.play();
@@ -1087,7 +1101,6 @@ function draw()
 		push();
 		const newCameraPosX = charInfo.gameCharX - width / 2;
 		const newCameraPosY = charInfo.gameCharY - floorPosY + 20;
-		console.log(newCameraPosX,charInfo.gameCharX)
 		if ((charInfo.gameCharX > width / 2) && (charInfo.gameCharX < maxX - width / 2))
 		{
 			cameraPos.x = cameraPos.x *0.85 + newCameraPosX * 0.15;
@@ -1111,10 +1124,9 @@ function draw()
 		{
 			//character and camera position control
 			charInfo = charCordination(charInfo)
-			//character design
-			strokeWeight(1);
-			charInfo.characterDraw();
 		}
+		//character design
+		charInfo.characterDraw();
 		pop();
 		//print character score
 		drawBoard();
