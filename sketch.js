@@ -84,7 +84,7 @@ function levelTwo()
 											{x:2490,y:floorPosY - 210},
 											{x:2556,y:floorPosY - 308},
 											{x:2660,y:floorPosY - 308},
-											{x:3090,y:410},
+											{x:3090,y:412},
 											{x:3140,y:floorPosY - 240},],
 							obj:[]},
 					canyons:{location:[{x:(midScreen - maxX/3)},
@@ -459,7 +459,7 @@ function Collectable(x, y = 410){
 	}
 	;
 }
-function Canyon(x,size = 2){
+function Canyon(x,size = 1){
 	this.x = x;
 	this.size = size;
 	this.width = 70 * this.size;
@@ -592,6 +592,7 @@ function Platform(x,y,length,range = 20){
 		if (this.checkContact())
 		{
 			charInfo.gameCharX += this.inc;
+			charInfo.isFalling = false;
 		}
 		if((this.currentX >= this.x + this.range) || (this.currentX < this.x))
 		{
@@ -1012,8 +1013,12 @@ function keyPressed()
 			charInfo.lives = 3;
 		}
 		else{
-			gameSounds.jumpSound.play();
-			charInfo.gameCharY -= 100;
+			console.log(charInfo.isFalling);
+			if (charInfo.isFalling == false)
+			{
+				gameSounds.jumpSound.play();
+				charInfo.gameCharY -= 120;
+			}
 			if (charInfo.gameCharY <= 100)
 			{
 				charInfo.gameCharY = 100;
@@ -1085,7 +1090,7 @@ function draw()
 		console.log(newCameraPosX,charInfo.gameCharX)
 		if ((charInfo.gameCharX > width / 2) && (charInfo.gameCharX < maxX - width / 2))
 		{
-			cameraPos.x = cameraPos.x *0.90 + newCameraPosX * 0.10;
+			cameraPos.x = cameraPos.x *0.85 + newCameraPosX * 0.15;
 		}
 		if (charInfo.isPlummeting == false)
 		{
